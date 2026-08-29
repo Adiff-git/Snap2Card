@@ -36,3 +36,24 @@ val Info      = Color(0xFF3B82F6)
 // Surface overlay for dark mode
 val SurfaceDark = Color(0xFF1A1C2A)
 val SurfaceVariantDark = Color(0xFF252840)
+
+// ── Gradients ──────────────────────────────────────────────────────────
+// Splash screen background gradient (soft indigo → white)
+val SplashGradientStart = Color(0xFFD6DBFC)
+val SplashGradientEnd = Color(0xFFF1F2FE)
+
+// Capture card gradient (primary CTA on Home)
+val CaptureGradientStart = Indigo500
+val CaptureGradientEnd = Indigo300
+
+// ── Category tag / chip colours ────────────────────────────────────────
+val TagGreen = Color(0xFF22C55E)
+val TagGreenBg = Color(0xFFDCFCE7)
+val TagOrange = Color(0xFFF59E0B)
+val TagOrangeBg = Color(0xFFFEF3C7)
+val TagBlue = Color(0xFF3B82F6)
+val TagBlueBg = Color(0xFFDBEAFE)
+val TagPurple = Color(0xFF8B5CF6)
+val TagPurpleBg = Color(0xFFEDE9FE)
+val TagRed = Color(0xFFEF4444)
+val TagRedBg = Color(0xFFFEE2E2)

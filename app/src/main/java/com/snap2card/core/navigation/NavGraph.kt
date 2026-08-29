@@ -1,8 +1,10 @@
 package com.snap2card.core.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -10,8 +12,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.snap2card.design_system.components.navigation.AppBottomNav
-import com.snap2card.feature.auth.presentation.LoginScreen
-import com.snap2card.feature.auth.presentation.SplashScreen
+import com.snap2card.feature.auth.presentation.login.LoginScreen
+import com.snap2card.feature.auth.presentation.splash.SplashScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
 import com.snap2card.feature.history.presentation.HistoryScreen
@@ -42,8 +44,12 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
 
     Scaffold(
         bottomBar = { if (showBottomBar) AppBottomNav(navController) }
-    ) { _ ->
-        NavHost(navController = navController, startDestination = Screen.Splash.route) {
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Splash.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
             authNavGraph(navController)
             mainNavGraph(navController)
         }

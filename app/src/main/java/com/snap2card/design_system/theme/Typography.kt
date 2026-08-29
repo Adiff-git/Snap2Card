@@ -7,9 +7,15 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Inter font — add font files to res/font/ or use downloadable fonts
-// For the skeleton we fall back to system default; replace with actual font files
-val InterFontFamily = FontFamily.Default
+import com.snap2card.R
+
+// Inter font — bundled in res/font/
+val InterFontFamily = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_bold, FontWeight.Bold),
+)
 
 val AppTypography = Typography(
     displayLarge = TextStyle(

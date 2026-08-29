@@ -4,7 +4,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 
 private val LightColorScheme = lightColorScheme(
     primary = Indigo500,
@@ -53,10 +54,18 @@ fun Snap2CardTheme(
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        shapes = AppShapes,
-        content = content
-    )
+    CompositionLocalProvider(LocalSpacing provides SpacingValues()) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography,
+            shapes = AppShapes,
+            content = content
+        )
+    }
 }
+
+/** Extension for convenient access: `MaterialTheme.spacing.md`. */
+val MaterialTheme.spacing: SpacingValues
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalSpacing.current

@@ -21,6 +21,7 @@ datastore = "1.1.1"
 coroutines = "1.8.1"
 credentials = "1.3.0"
 googleid = "1.1.1"
+coil = "2.7.0"
 
 [libraries]
 # AndroidX Core
@@ -71,6 +72,9 @@ kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "ko
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 google-identity-googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+
+# Image Loading
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

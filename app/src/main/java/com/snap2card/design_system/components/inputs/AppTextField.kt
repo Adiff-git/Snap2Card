@@ -7,6 +7,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.VisualTransformation
 
 @Composable
 fun AppTextField(
@@ -18,6 +19,9 @@ fun AppTextField(
     isError: Boolean = false,
     errorMessage: String? = null,
     singleLine: Boolean = true,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
     OutlinedTextField(
         value = value,
@@ -29,6 +33,9 @@ fun AppTextField(
             { Text(errorMessage, color = MaterialTheme.colorScheme.error) }
         } else null,
         singleLine = singleLine,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        visualTransformation = visualTransformation,
         shape = MaterialTheme.shapes.medium,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
