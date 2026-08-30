@@ -36,3 +36,16 @@ val Info      = Color(0xFF3B82F6)
 // Surface overlay for dark mode
 val SurfaceDark = Color(0xFF1A1C2A)
 val SurfaceVariantDark = Color(0xFF252840)
+
+// Deck/card creation screens
+val AppBackground = Color(0xFFF8F9FF)
+val InputBackground = Color(0xFFF1F2F7)
+val ProgressTrack = Color(0xFFE7E8F0)
+val BiologyTagBackground = Color(0xFFE8FFCE)
+val BiologyTagText = Color(0xFF4A8F14)
+val LanguageTagBackground = Color(0xFFFFF0C7)
+val LanguageTagText = Color(0xFFA36A00)
+val HistoryTagBackground = Color(0xFFF2E4CC)
+val HistoryTagText = Color(0xFF91611D)
+val MedicalTagBackground = Color(0xFFE9E7FF)
+val MedicalTagText = Color(0xFF4F63F0)
