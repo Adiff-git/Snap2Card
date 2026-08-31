@@ -9,6 +9,7 @@ import com.snap2card.feature.auth.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,5 +35,7 @@ class AuthRepositoryImpl @Inject constructor(
         _currentUser.value = null
     }
 
-    override suspend fun isSessionValid(): Boolean = TODO("Check token expiry from DataStore")
+    override suspend fun isSessionValid(): Boolean {
+        return userPreferencesDataStore.accessToken.first() != null
+    }
 }

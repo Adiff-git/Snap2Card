@@ -100,6 +100,9 @@ dependencies {
     implementation(libs.androidx.credentials.play.auth)
     implementation(libs.google.identity.googleid)
 
+    // Image Loading
+    implementation(libs.coil.compose)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
