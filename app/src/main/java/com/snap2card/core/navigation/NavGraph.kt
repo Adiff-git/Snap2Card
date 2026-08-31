@@ -44,7 +44,7 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
     Scaffold(
         bottomBar = { if (showBottomBar) AppBottomNav(navController) }
     ) { _ ->
-        NavHost(navController = navController, startDestination = Screen.Splash.route) {
+        NavHost(navController = navController, startDestination = Screen.DeckList.route) {
             authNavGraph(navController)
             mainNavGraph(navController)
         }
