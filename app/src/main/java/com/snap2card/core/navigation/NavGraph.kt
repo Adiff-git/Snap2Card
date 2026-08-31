@@ -15,6 +15,7 @@ import com.snap2card.design_system.components.navigation.AppBottomNav
 import com.snap2card.feature.auth.presentation.login.LoginScreen
 import com.snap2card.feature.auth.presentation.splash.SplashScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
+import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
 import com.snap2card.feature.history.presentation.HistoryScreen
 import com.snap2card.feature.home.presentation.HomeScreen
@@ -47,7 +48,7 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Splash.route,
+            startDestination = Screen.DeckList.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             authNavGraph(navController)
@@ -93,7 +94,19 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     }
     composable(Screen.DeckDetail.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
-        // TODO: DeckDetailScreen(deckId = deckId, …)
+        EditDeckScreen(
+            deckId = deckId,
+            onNavigateBack = { navController.popBackStack() },
+            onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+        )
+    }
+    composable(Screen.EditDeck.route) { backStackEntry ->
+        val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
+        EditDeckScreen(
+            deckId = deckId,
+            onNavigateBack = { navController.popBackStack() },
+            onDeckSaved = { navController.popBackStack() },
+        )
     }
     composable(Screen.Snap2Card.route) {
         Snap2CardScreen(onCardsGenerated = { jobId -> navController.navigate(Screen.GeneratedCards.createRoute(jobId)) })
