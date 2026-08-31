@@ -1,8 +1,15 @@
 package com.snap2card.core.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -10,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.snap2card.design_system.components.navigation.AppBottomNav
+import com.snap2card.feature.account.presentation.AccountScreen
 import com.snap2card.feature.auth.presentation.LoginScreen
 import com.snap2card.feature.auth.presentation.SplashScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
@@ -102,6 +110,17 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     }
     composable(Screen.History.route) { HistoryScreen() }
     composable(Screen.Settings.route) {
-        SettingsScreen(onSignOut = { navController.navigate(Screen.Login.route) { popUpTo(0) } })
+        SettingsScreen(
+            onSignOut = { navController.navigate(Screen.Login.route) { popUpTo(0) } },
+            onAccountClick = { navController.navigate(Screen.Account.route) },
+        )
+    }
+}
+
+// ── Account Graph ────────────────────────────────────────────────────────────
+
+fun NavGraphBuilder.accountNavGraph(navController: NavHostController) {
+    composable(Screen.Account.route) {
+        AccountScreen(onNavigateBack = { navController.popBackStack() })
     }
 }

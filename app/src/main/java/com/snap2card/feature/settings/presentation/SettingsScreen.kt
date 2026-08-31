@@ -1,7 +1,11 @@
 package com.snap2card.feature.settings.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
@@ -16,6 +20,7 @@ import com.snap2card.design_system.theme.Spacing
 @Composable
 fun SettingsScreen(
     onSignOut: () -> Unit,
+    onAccountClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -27,6 +32,9 @@ fun SettingsScreen(
                 is SettingsUiState.Error -> Text(state.message, color = MaterialTheme.colorScheme.error)
                 is SettingsUiState.Success -> {
                     val settings = state.settings
+                    SettingRow(icon = { Icon(Icons.Default.AccountCircle, null) }, label = "Account", onClick = onAccountClick) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                    }
                     SettingRow(icon = { Icon(Icons.Default.DarkMode, null) }, label = "Dark Mode") {
                         Switch(checked = settings.darkMode, onCheckedChange = { viewModel.updateSettings(settings.copy(darkMode = it)) })
                     }
@@ -44,7 +52,17 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingRow(icon: @Composable () -> Unit, label: String, trailing: @Composable () -> Unit) {
-    ListItem(headlineContent = { Text(label) }, leadingContent = icon, trailingContent = trailing)
+private fun SettingRow(
+    icon: @Composable () -> Unit,
+    label: String,
+    onClick: (() -> Unit)? = null,
+    trailing: @Composable () -> Unit,
+) {
+    ListItem(
+        headlineContent = { Text(label) },
+        leadingContent = icon,
+        trailingContent = trailing,
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
+    )
     HorizontalDivider()
 }
