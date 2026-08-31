@@ -171,7 +171,9 @@ fun LoginScreen(
         // ── Log In button ──────────────────────────────────────────────
         PrimaryButton(
             text = "Log In",
-            onClick = { /* Email/password is visual-only for now */ },
+//            onClick = { /* Email/password is visual-only for now */ },
+            onClick = onLoginSuccess,
+
         )
 
         Spacer(Modifier.height(Spacing.lg))
