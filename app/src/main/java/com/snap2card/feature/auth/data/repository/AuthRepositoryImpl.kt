@@ -4,6 +4,7 @@ import com.snap2card.core.datastore.UserPreferencesDataStore
 import com.snap2card.feature.auth.data.mapper.toDomain
 import com.snap2card.feature.auth.data.remote.AuthApiService
 import com.snap2card.feature.auth.data.remote.dto.GoogleAuthRequest
+import com.snap2card.feature.auth.data.remote.dto.LoginRequest
 import com.snap2card.feature.auth.domain.model.User
 import com.snap2card.feature.auth.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,19 @@ class AuthRepositoryImpl @Inject constructor(
 
     private val _currentUser = MutableStateFlow<User?>(null)
     override val currentUser: Flow<User?> = _currentUser.asStateFlow()
+
+    override suspend fun loginWithEmail(email: String, password: String): Result<String> = runCatching {
+        val response = authApiService.login(LoginRequest(email, password))
+        val token = response.data.token
+        // Backend returns only a token — save it as both access and refresh for now.
+        // userId is unknown at login time; store email as fallback identifier.
+        userPreferencesDataStore.saveSession(
+            accessToken = token,
+            refreshToken = token,
+            userId = email,
+        )
+        token
+    }
 
     override suspend fun signInWithGoogle(idToken: String): Result<User> = runCatching {
         val response = authApiService.signInWithGoogle(GoogleAuthRequest(idToken))
