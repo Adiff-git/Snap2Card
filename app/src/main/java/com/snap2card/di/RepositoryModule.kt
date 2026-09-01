@@ -7,6 +7,8 @@ import com.snap2card.feature.auth.data.repository.AuthRepositoryImpl
 import com.snap2card.feature.auth.domain.repository.AuthRepository
 import com.snap2card.feature.deck.data.repository.DeckRepositoryImpl
 import com.snap2card.feature.deck.domain.repository.DeckRepository
+import com.snap2card.feature.home.data.repository.FakeDashboardRepository
+import com.snap2card.feature.home.domain.repository.DashboardRepository
 import com.snap2card.feature.settings.data.repository.SettingsRepositoryImpl
 import com.snap2card.feature.settings.domain.repository.SettingsRepository
 import com.snap2card.feature.snap2card.data.repository.OcrRepositoryImpl
@@ -30,17 +32,13 @@ import javax.inject.Singleton
 abstract class RepositoryModule {
 
     @Binds @Singleton
-    abstract fun bindAuthRepository(impl: FakeAuthRepositoryImpl): AuthRepository
-    // NOT TO BE COMMITTED
-    // abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
+    abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
 
     @Binds @Singleton
     abstract fun bindDeckRepository(impl: DeckRepositoryImpl): DeckRepository
 
     @Binds @Singleton
-    abstract fun bindOcrRepository(impl: FakeOcrRepositoryImpl): OcrRepository
-    // NOT TO BE COMMITTED
-    // abstract fun bindOcrRepository(impl: OcrRepositoryImpl): OcrRepository
+    abstract fun bindOcrRepository(impl: OcrRepositoryImpl): OcrRepository
 
     @Binds @Singleton
     abstract fun bindStudyRepository(impl: StudyRepositoryImpl): StudyRepository
@@ -50,4 +48,7 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindAccountRepository(impl: AccountRepositoryImpl): AccountRepository
+
+    @Binds @Singleton
+    abstract fun bindDashboardRepository(impl: FakeDashboardRepository): DashboardRepository
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,9 +19,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.snap2card.design_system.components.navigation.AppBottomNav
 import com.snap2card.feature.account.presentation.AccountScreen
-import com.snap2card.feature.auth.presentation.LoginScreen
-import com.snap2card.feature.auth.presentation.SplashScreen
+import com.snap2card.feature.auth.presentation.login.LoginScreen
+import com.snap2card.feature.auth.presentation.splash.SplashScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
+import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
 import com.snap2card.feature.history.presentation.HistoryScreen
 import com.snap2card.feature.home.presentation.HomeScreen
@@ -100,11 +102,19 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     }
     composable(Screen.DeckDetail.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
-        // TODO: DeckDetailScreen(deckId = deckId, …)
-        // TEMP for local testing
-        androidx.compose.material3.Button(onClick = { navController.navigate(Screen.Study.createRoute(deckId)) }) {
-            androidx.compose.material3.Text("Study (temp)")
-        }
+        EditDeckScreen(
+            deckId = deckId,
+            onNavigateBack = { navController.popBackStack() },
+            onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+        )
+    }
+    composable(Screen.EditDeck.route) { backStackEntry ->
+        val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
+        EditDeckScreen(
+            deckId = deckId,
+            onNavigateBack = { navController.popBackStack() },
+            onDeckSaved = { navController.popBackStack() },
+        )
     }
     composable(Screen.Snap2Card.route) {
         Snap2CardScreen(onCardsGenerated = { jobId -> navController.navigate(Screen.GeneratedCards.createRoute(jobId)) })

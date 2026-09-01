@@ -54,11 +54,13 @@ android {
 dependencies {
     // AndroidX Core
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
     implementation(libs.material)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.material)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
@@ -100,6 +102,9 @@ dependencies {
     implementation(libs.androidx.credentials.play.auth)
     implementation(libs.google.identity.googleid)
 
+    // Image Loading
+    implementation(libs.coil.compose)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -108,6 +113,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-    implementation(libs.coil.compose)
 }
