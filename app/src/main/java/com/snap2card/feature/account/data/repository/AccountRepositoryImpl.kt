@@ -96,6 +96,11 @@ class FakeAuthRepositoryImpl @Inject constructor() : AuthRepository {
         return Result.success(fakeUser)
     }
 
+    override suspend fun loginWithEmail(email: String, password: String): Result<String> {
+        _currentUser.value = fakeUser
+        return Result.success("FAKE_TOKEN")
+    }
+
     override suspend fun signOut() {
         _currentUser.value = null
     }
