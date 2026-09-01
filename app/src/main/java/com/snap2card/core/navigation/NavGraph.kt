@@ -50,12 +50,17 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
 
     Scaffold(
         bottomBar = { if (showBottomBar) AppBottomNav(navController) }
-    ) { _ ->
-        NavHost(navController = navController, startDestination = Screen.Splash.route) {
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.route,
+            modifier = Modifier.padding(innerPadding),
+        ) {
             authNavGraph(navController)
             mainNavGraph(navController)
+            accountNavGraph(navController)
         }
-    }
+    } // Bypass
 }
 
 // ── Auth Graph ────────────────────────────────────────────────────────────────
@@ -96,6 +101,10 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.DeckDetail.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
         // TODO: DeckDetailScreen(deckId = deckId, …)
+        // TEMP for local testing
+        androidx.compose.material3.Button(onClick = { navController.navigate(Screen.Study.createRoute(deckId)) }) {
+            androidx.compose.material3.Text("Study (temp)")
+        }
     }
     composable(Screen.Snap2Card.route) {
         Snap2CardScreen(onCardsGenerated = { jobId -> navController.navigate(Screen.GeneratedCards.createRoute(jobId)) })
