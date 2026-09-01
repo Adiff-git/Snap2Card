@@ -42,20 +42,24 @@ class GeneratedCardsViewModel @Inject constructor(
 
     private fun sampleState(): GeneratedCardsUiState = GeneratedCardsUiState.Success(
         jobId = jobId,
-        category = "Medical",
-        cards = listOf(
-            DeckEditorCardInput(
-                front = "Mitochondria",
-                back = "The powerhouse of the cell, responsible for generating most of the cell's supply of adenosine triphosphate.",
-            ),
-            DeckEditorCardInput(
-                front = "Nucleus",
-                back = "A membrane-bound organelle found in eukaryotic cells that contains the cell's genetic material.",
-            ),
-            DeckEditorCardInput(
-                front = "Ribosome",
-                back = "A complex macromolecular machine found within all living cells that performs biological protein synthesis.",
-            ),
-        ),
+        category = if (jobId == "manual") "Manual" else "Medical",
+        cards = if (jobId == "manual") {
+            listOf(DeckEditorCardInput())
+        } else {
+            listOf(
+                DeckEditorCardInput(
+                    front = "Mitochondria",
+                    back = "The powerhouse of the cell, responsible for generating most of the cell's supply of adenosine triphosphate.",
+                ),
+                DeckEditorCardInput(
+                    front = "Nucleus",
+                    back = "A membrane-bound organelle found in eukaryotic cells that contains the cell's genetic material.",
+                ),
+                DeckEditorCardInput(
+                    front = "Ribosome",
+                    back = "A complex macromolecular machine found within all living cells that performs biological protein synthesis.",
+                ),
+            )
+        },
     )
 }

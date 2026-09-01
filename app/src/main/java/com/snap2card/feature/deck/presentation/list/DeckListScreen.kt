@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -72,8 +72,8 @@ fun DeckListScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .background(AppBackground),
-            contentPadding = PaddingValues(horizontal = Spacing.lg, vertical = Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md),
+            contentPadding = PaddingValues(horizontal = Spacing.lg, vertical = Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             item {
                 DeckListHeader(onCreateDeck = onCreateDeck)
@@ -82,13 +82,15 @@ fun DeckListScreen(
                 DeckSearchField(value = query, onValueChange = { query = it })
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     categories.forEach { category ->
-                        DeckFilterChip(
-                            text = category,
-                            selected = selectedCategory == category,
-                            onClick = { selectedCategory = category },
-                        )
+                        item {
+                            DeckFilterChip(
+                                text = category,
+                                selected = selectedCategory == category,
+                                onClick = { selectedCategory = category },
+                            )
+                        }
                     }
                 }
             }
@@ -123,18 +125,15 @@ private fun DeckListHeader(onCreateDeck: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onCreateDeck) {
-            Icon(Icons.Default.Menu, contentDescription = "Open menu")
-        }
         Text(
-            text = "Snap2Card",
+            text = "Decks",
             style = MaterialTheme.typography.headlineMedium,
             color = Indigo500,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
         )
-        IconButton(onClick = { }) {
-            Icon(Icons.Default.Search, contentDescription = "Search")
+        IconButton(onClick = onCreateDeck) {
+            Icon(Icons.Default.Add, contentDescription = "Create deck")
         }
     }
 }
@@ -191,16 +190,7 @@ private fun DeckProgressCard(deck: DeckListItemUi, onClick: () -> Unit) {
             modifier = Modifier.padding(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                DeckTag(deck.category)
-                Spacer(Modifier.weight(1f))
-                Icon(
-                    Icons.Default.MoreVert,
-                    contentDescription = "Deck actions",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
+            DeckTag(deck.category)
             Text(
                 text = deck.title,
                 style = MaterialTheme.typography.titleLarge,

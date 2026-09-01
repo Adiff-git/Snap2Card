@@ -34,7 +34,6 @@ fun EditDeckScreen(
             ),
         ),
         showDeckInfo = false,
-        showSourceOptions = false,
         cardsSectionTitle = null,
         secondaryActionText = "Regenerate",
         onNavigateBack = onNavigateBack,

@@ -90,6 +90,7 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.CreateDeck.route) {
         CreateDeckScreen(
             onDeckCreated = { deckId -> navController.navigate(Screen.DeckDetail.createRoute(deckId)) { popUpTo(Screen.CreateDeck.route) { inclusive = true } } },
+            onCardCreationMethodSelected = { method -> navController.navigate(Screen.GeneratedCards.createRoute(method)) },
             onNavigateBack = { navController.popBackStack() },
         )
     }

@@ -21,17 +21,16 @@ fun GeneratedCardsScreen(
         is GeneratedCardsUiState.Error -> ErrorState(message = state.message)
         is GeneratedCardsUiState.Success -> DeckEditorScaffold(
             topBarTitle = "Review & Edit",
-            title = "Generated Cards (${state.cards.size})",
+            title = if (state.jobId == "manual") "Manual Cards" else "Generated Cards (${state.cards.size})",
             subtitle = "",
             titleTag = state.category,
-            saveText = "Save Deck",
+            saveText = "Save Cards to Deck",
             initialDeckName = "Generated Deck",
             initialTag = state.category,
             initialCards = state.cards,
             showDeckInfo = false,
-            showSourceOptions = false,
             cardsSectionTitle = null,
-            secondaryActionText = "Regenerate",
+            secondaryActionText = if (state.jobId == "manual") null else "Regenerate",
             onSecondaryAction = viewModel::regenerate,
             onNavigateBack = onNavigateBack,
             onSave = { result ->
