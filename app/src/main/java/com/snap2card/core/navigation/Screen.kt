@@ -18,6 +18,7 @@ sealed class Screen(val route: String) {
     data object Snap2Card : Screen("snap2card")
     data object History : Screen("history")
     data object Settings : Screen("settings")
+    data object Account : Screen("account")
 
     // Secondary destinations
     data object DeckDetail : Screen("deck_detail/{deckId}") {
