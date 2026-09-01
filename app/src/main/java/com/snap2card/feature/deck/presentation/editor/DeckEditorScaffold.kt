@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.MoreVert
@@ -64,6 +64,12 @@ data class DeckEditorCardInput(
     val back: String = "",
 )
 
+data class DeckEditorResult(
+    val deckName: String,
+    val tag: String,
+    val cards: List<DeckEditorCardInput>,
+)
+
 @Composable
 fun DeckEditorScaffold(
     topBarTitle: String = "Snap2Card",
@@ -76,10 +82,11 @@ fun DeckEditorScaffold(
     initialCards: List<DeckEditorCardInput> = listOf(DeckEditorCardInput()),
     showDeckInfo: Boolean = true,
     showSourceOptions: Boolean = true,
+    cardsSectionTitle: String? = "Manual Entry",
     secondaryActionText: String? = null,
     onSecondaryAction: () -> Unit = {},
     onNavigateBack: () -> Unit,
-    onSave: () -> Unit,
+    onSave: (DeckEditorResult) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var deckName by remember { mutableStateOf(initialDeckName) }
@@ -97,7 +104,15 @@ fun DeckEditorScaffold(
                 saveText = saveText,
                 secondaryActionText = secondaryActionText,
                 onSecondaryAction = onSecondaryAction,
-                onSave = onSave,
+                onSave = {
+                    onSave(
+                        DeckEditorResult(
+                            deckName = deckName,
+                            tag = tag,
+                            cards = cards.toList(),
+                        )
+                    )
+                },
             )
         },
     ) { padding ->
@@ -168,8 +183,10 @@ fun DeckEditorScaffold(
                     DividerWithText("OR")
                 }
             }
-            item {
-                Text("Manual Entry", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            if (cardsSectionTitle != null) {
+                item {
+                    Text(cardsSectionTitle, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                }
             }
             itemsIndexed(cards) { index, card ->
                 ManualCardEditor(
@@ -207,7 +224,7 @@ private fun DeckEditorTopBar(title: String, onNavigateBack: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onNavigateBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
         Text(
             text = title,

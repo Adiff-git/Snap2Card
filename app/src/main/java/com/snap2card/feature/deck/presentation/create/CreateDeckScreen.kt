@@ -16,6 +16,9 @@ fun CreateDeckScreen(
         initialDeckName = "",
         initialTag = "",
         onNavigateBack = onNavigateBack,
-        onSave = { onDeckCreated("preview-deck") },
+        onSave = { result ->
+            val deckId = result.deckName.ifBlank { "preview-deck" }.trim().lowercase().replace(" ", "-")
+            onDeckCreated(deckId)
+        },
     )
 }

@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.snap2card.design_system.components.navigation.AppBottomNav
 import com.snap2card.feature.auth.presentation.login.LoginScreen
 import com.snap2card.feature.auth.presentation.splash.SplashScreen
+import com.snap2card.feature.card_generation.presentation.GeneratedCardsScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
 import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
@@ -111,9 +112,11 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.Snap2Card.route) {
         Snap2CardScreen(onCardsGenerated = { jobId -> navController.navigate(Screen.GeneratedCards.createRoute(jobId)) })
     }
-    composable(Screen.GeneratedCards.route) { backStackEntry ->
-        val jobId = backStackEntry.arguments?.getString("jobId") ?: return@composable
-        // TODO: GeneratedCardsScreen(jobId = jobId, …)
+    composable(Screen.GeneratedCards.route) {
+        GeneratedCardsScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+        )
     }
     composable(Screen.Study.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
