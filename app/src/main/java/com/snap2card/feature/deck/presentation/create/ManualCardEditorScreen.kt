@@ -58,7 +58,7 @@ fun ManualCardEditorScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        containerColor = AppBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
                 title = "Add Cards",
@@ -82,7 +82,7 @@ fun ManualCardEditorScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(AppBackground),
+                .background(MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
@@ -209,12 +209,12 @@ private fun ManualTextField(
         isError = isError,
         shape = MaterialTheme.shapes.small,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = InputBackground,
-            unfocusedContainerColor = InputBackground,
-            disabledContainerColor = InputBackground,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            errorContainerColor = InputBackground,
+            errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             errorIndicatorColor = MaterialTheme.colorScheme.error,
         ),
     )

@@ -65,12 +65,12 @@ fun DeckListScreen(
         ?.filter { deck -> query.isBlank() || deck.title.contains(query, ignoreCase = true) }
         .orEmpty()
 
-    Scaffold(containerColor = AppBackground) { padding ->
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(AppBackground),
+                .background(MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(horizontal = Spacing.lg, vertical = Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
@@ -131,9 +131,9 @@ private fun DeckSearchField(value: String, onValueChange: (String) -> Unit) {
         singleLine = true,
         shape = MaterialTheme.shapes.large,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = InputBackground,
-            unfocusedContainerColor = InputBackground,
-            disabledContainerColor = InputBackground,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),

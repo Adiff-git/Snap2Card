@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -91,6 +93,28 @@ private fun AccountContent(
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item { ProfileHeader(name = state.user.displayName, email = state.user.email, photoUrl = state.user.photoUrl) }
+
+        item {
+            Text("Personal Information", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+        }
+
+        item {
+            SettingRowLike(
+                icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                label = "Name",
+                value = state.user.displayName,
+                onClick = {},
+            )
+        }
+        
+        item {
+            SettingRowLike(
+                icon = { Icon(Icons.Default.Email, contentDescription = null) },
+                label = "Email",
+                value = state.user.email,
+                onClick = {},
+            )
+        }
 
         item {
             SettingRowLike(

@@ -4,6 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
+import com.snap2card.core.datastore.UserPreferencesDataStore
+import com.snap2card.feature.account.data.remote.AccountApiService
 import com.snap2card.feature.account.domain.repository.AccountRepository
 import com.snap2card.feature.auth.domain.model.User
 import com.snap2card.feature.auth.domain.repository.AuthRepository
@@ -15,6 +17,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.time.LocalDate
@@ -28,16 +32,29 @@ class AccountRepositoryImpl @Inject constructor(
     private val studyRepository: StudyRepository,
     private val deckRepository: DeckRepository,
     private val dataStore: DataStore<Preferences>,
+    private val accountApiService: AccountApiService,
+    private val userPreferencesDataStore: UserPreferencesDataStore,
 ) : AccountRepository {
 
     companion object {
         private val KEY_BIRTHDAY = longPreferencesKey("account_birthday")
     }
 
-    override fun getProfile(): Flow<Pair<User?, Long?>> =
-        combine(authRepository.currentUser, dataStore.data) { user, prefs ->
-            user to prefs[KEY_BIRTHDAY]
+    override fun getProfile(): Flow<Pair<User?, Long?>> = flow {
+        try {
+            val response = accountApiService.getAccount()
+            userPreferencesDataStore.updateUser(
+                email = response.data.email,
+                displayName = response.data.name
+            )
+        } catch (e: Exception) {
+            // Ignore API failure, fallback to DataStore
         }
+        
+        emitAll(combine(authRepository.currentUser, dataStore.data) { user, prefs ->
+            user to prefs[KEY_BIRTHDAY]
+        })
+    }
 
     override suspend fun updateBirthday(birthdayMillis: Long?) {
         dataStore.edit { prefs ->

@@ -87,7 +87,7 @@ fun CameraInputScreen(
     }
 
     Scaffold(
-        containerColor = AppBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
                 title = "Scan Notes",
@@ -154,7 +154,7 @@ private fun CameraFrame() {
                 .fillMaxSize()
                 .padding(Spacing.lg)
                 .border(2.dp, Indigo100, RoundedCornerShape(28.dp))
-                .background(AppBackground, RoundedCornerShape(28.dp)),
+                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(28.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {

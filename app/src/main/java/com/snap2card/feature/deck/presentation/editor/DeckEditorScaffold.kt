@@ -211,7 +211,7 @@ private fun DeckEditorTopBar(title: String, onNavigateBack: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(AppBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -258,7 +258,7 @@ private fun DeckNameCard(
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
                     modifier = Modifier
                         .height(28.dp)
-                        .background(InputBackground, MaterialTheme.shapes.extraLarge),
+                        .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.extraLarge),
                 ) {
                     Text("+ Add Tag", style = MaterialTheme.typography.labelSmall)
                 }
@@ -348,12 +348,12 @@ private fun FlatTextField(
         isError = isError,
         shape = MaterialTheme.shapes.small,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = InputBackground,
-            unfocusedContainerColor = InputBackground,
-            disabledContainerColor = InputBackground,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            errorContainerColor = InputBackground,
+            errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             errorIndicatorColor = MaterialTheme.colorScheme.error,
         ),
     )

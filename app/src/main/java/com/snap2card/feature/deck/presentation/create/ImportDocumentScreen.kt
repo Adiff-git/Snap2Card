@@ -80,7 +80,7 @@ fun ImportDocumentScreen(
     }
 
     Scaffold(
-        containerColor = AppBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
                 title = "Import Document",
@@ -106,7 +106,7 @@ fun ImportDocumentScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(AppBackground)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(Spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.md),

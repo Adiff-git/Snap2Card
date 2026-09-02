@@ -1,5 +1,6 @@
 package com.snap2card.feature.home.data.repository
 
+import com.snap2card.feature.auth.domain.repository.AuthRepository
 import com.snap2card.feature.home.domain.model.DashboardData
 import com.snap2card.feature.home.domain.model.RecentDeck
 import com.snap2card.feature.home.domain.repository.DashboardRepository
@@ -15,14 +16,16 @@ import javax.inject.Singleton
  */
 @Singleton
 class FakeDashboardRepository @Inject constructor(
+    private val authRepository: AuthRepository,
     private val settingsRepository: SettingsRepository
 ) : DashboardRepository {
 
     override suspend fun getDashboard(): DashboardData {
         val settings = settingsRepository.getSettings().first()
+        val user = authRepository.currentUser.first()
         return DashboardData(
-            userName = "Scholar",
-            userPhotoUrl = null,
+            userName = user?.displayName ?: "Scholar",
+            userPhotoUrl = user?.photoUrl,
             streakCount = 7,
             recentDecks = listOf(
                 RecentDeck(

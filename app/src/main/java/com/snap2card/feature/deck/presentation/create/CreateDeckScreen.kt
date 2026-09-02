@@ -141,7 +141,7 @@ private fun CreateDeckTopBar(onNavigateBack: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(AppBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -187,7 +187,7 @@ private fun DeckSetupCard(
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
                     modifier = Modifier
                         .height(30.dp)
-                        .background(InputBackground, MaterialTheme.shapes.extraLarge),
+                        .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.extraLarge),
                     contentPadding = PaddingValues(horizontal = Spacing.sm, vertical = 0.dp),
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
@@ -266,9 +266,9 @@ private fun FlatTextField(
         singleLine = true,
         shape = MaterialTheme.shapes.small,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = InputBackground,
-            unfocusedContainerColor = InputBackground,
-            disabledContainerColor = InputBackground,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),
