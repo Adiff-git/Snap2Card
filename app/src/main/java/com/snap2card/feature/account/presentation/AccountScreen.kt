@@ -87,68 +87,58 @@ private fun AccountContent(
     padding: PaddingValues,
     onBirthdayClick: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier.padding(padding).fillMaxSize(),
-        contentPadding = PaddingValues(Spacing.md),
-        verticalArrangement = Arrangement.spacedBy(Spacing.md),
+    Column(
+        modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()
+            .padding(horizontal = Spacing.lg),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        item { ProfileHeader(name = state.user.displayName, email = state.user.email, photoUrl = state.user.photoUrl) }
+        Spacer(Modifier.height(Spacing.xl))
 
-        item {
-            Text("Personal Information", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-        }
+        ProfileHeader(name = state.user.displayName, email = state.user.email, photoUrl = state.user.photoUrl)
 
-        item {
-            SettingRowLike(
-                icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                label = "Name",
-                value = state.user.displayName,
-                onClick = {},
-            )
-        }
-        
-        item {
-            SettingRowLike(
-                icon = { Icon(Icons.Default.Email, contentDescription = null) },
-                label = "Email",
-                value = state.user.email,
-                onClick = {},
-            )
+        Spacer(Modifier.height(Spacing.xl))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+        ) {
+            StatCard(title = "Streak", value = "${state.streak} 🔥", modifier = Modifier.weight(1f))
+            StatCard(title = "Decks", value = "${state.decks.size} 📚", modifier = Modifier.weight(1f))
+            StatCard(title = "Reviews", value = "${state.reviews.size} 📝", modifier = Modifier.weight(1f))
         }
 
-        item {
-            SettingRowLike(
-                icon = { Icon(Icons.Default.Cake, contentDescription = null) },
-                label = "Birthday",
-                value = state.birthday?.let { formatDate(it) } ?: "Not set",
-                onClick = onBirthdayClick,
-            )
-        }
+        Spacer(Modifier.height(Spacing.xl))
 
-        item { StreakCard(streak = state.streak) }
-
-        item {
-            Text("Deck History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        }
-        if (state.decks.isEmpty()) {
-            item { Text("No decks yet", style = MaterialTheme.typography.bodyMedium) }
-        } else {
-            items(state.decks, key = { it.id }) { deck ->
-                ListItem(headlineContent = { Text(deck.title) }, supportingContent = { Text(deck.description) })
-            }
-        }
-
-        item {
-            Text("Review History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        }
-        if (state.reviews.isEmpty()) {
-            item { Text("No reviews yet", style = MaterialTheme.typography.bodyMedium) }
-        } else {
-            items(state.reviews.take(20), key = { it.id }) { review ->
-                ListItem(
-                    headlineContent = { Text(review.result.name) },
-                    supportingContent = { Text(formatDate(review.reviewedAt)) },
-                )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onBirthdayClick)
+                    .padding(Spacing.lg)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Cake, 
+                        contentDescription = null, 
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(Spacing.md))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Birthday", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                        Text(
+                            text = state.birthday?.let { formatDate(it) } ?: "Tap to set", 
+                            style = MaterialTheme.typography.bodyMedium, 
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }
@@ -160,40 +150,44 @@ private fun ProfileHeader(name: String, email: String, photoUrl: String?) {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        AsyncImage(
-            model = photoUrl,
-            contentDescription = "Profile photo",
-            modifier = Modifier.size(80.dp).clip(androidx.compose.foundation.shape.CircleShape),
-        )
-        Spacer(Modifier.height(Spacing.sm))
-        Text(name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text(email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (photoUrl != null) {
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = "Profile photo",
+                modifier = Modifier.size(100.dp).clip(androidx.compose.foundation.shape.CircleShape),
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .androidx.compose.foundation.background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(48.dp))
+            }
+        }
+        Spacer(Modifier.height(Spacing.md))
+        Text(name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(email, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun StreakCard(streak: Int) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
+private fun StatCard(title: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(
             modifier = Modifier.padding(Spacing.md).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Current Streak", style = MaterialTheme.typography.bodyLarge)
-            Text("$streak days", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer)
+            Spacer(Modifier.height(4.dp))
+            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
         }
     }
-}
-
-@Composable
-private fun SettingRowLike(icon: @Composable () -> Unit, label: String, value: String, onClick: () -> Unit) {
-    ListItem(
-        headlineContent = { Text(label) },
-        supportingContent = { Text(value) },
-        leadingContent = icon,
-        modifier = Modifier.clickable(onClick = onClick),
-    )
-    HorizontalDivider()
 }
 
 private fun formatDate(millis: Long): String =
