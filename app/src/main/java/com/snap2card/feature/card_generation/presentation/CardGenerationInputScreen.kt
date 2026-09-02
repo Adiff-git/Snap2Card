@@ -96,12 +96,6 @@ private fun GeneratingCardsContent(
             CircularProgressIndicator(color = Indigo500)
             Spacer(Modifier.height(Spacing.md))
             Text(
-                text = "Generating Cards",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
                 text = "Analyzing your notes and creating flashcards...",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

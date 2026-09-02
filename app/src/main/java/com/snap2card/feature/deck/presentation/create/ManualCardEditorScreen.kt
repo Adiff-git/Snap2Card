@@ -86,15 +86,6 @@ fun ManualCardEditorScreen(
             contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
-            item {
-                Text(
-                    text = "Add Cards",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Indigo500,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-
             itemsIndexed(uiState.cards) { index, card ->
                 ManualFlashcardEditor(
                     index = index,
