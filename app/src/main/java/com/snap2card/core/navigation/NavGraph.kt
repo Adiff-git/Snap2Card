@@ -17,6 +17,7 @@ import com.snap2card.feature.auth.presentation.splash.SplashScreen
 import com.snap2card.feature.card_generation.presentation.GeneratedCardsScreen
 import com.snap2card.feature.deck.presentation.create.CardCreationMethodPlaceholderScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
+import com.snap2card.feature.deck.presentation.create.ManualCardEditorScreen
 import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
 import com.snap2card.feature.history.presentation.HistoryScreen
@@ -112,10 +113,9 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
         )
     }
     composable(Screen.CreateDeckManual.route) {
-        CardCreationMethodPlaceholderScreen(
-            title = "Add Cards Manually",
-            description = "Manual card entry for deck creation will be implemented in the next phase.",
+        ManualCardEditorScreen(
             onNavigateBack = { navController.popBackStack() },
+            onCardsSaved = { navController.popBackStack() },
         )
     }
     composable(Screen.DeckDetail.route) { backStackEntry ->
