@@ -2,6 +2,7 @@
 
 package com.snap2card.feature.account.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -161,7 +162,7 @@ private fun ProfileHeader(name: String, email: String, photoUrl: String?) {
                 modifier = Modifier
                     .size(100.dp)
                     .clip(androidx.compose.foundation.shape.CircleShape)
-                    .androidx.compose.foundation.background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(48.dp))
