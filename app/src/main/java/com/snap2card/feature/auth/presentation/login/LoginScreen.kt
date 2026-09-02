@@ -68,7 +68,7 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState) {
-        if (uiState is LoginUiState.Success) onLoginSuccess()
+        if (uiState is LoginUiState.Success || uiState is LoginUiState.LoggedIn) onLoginSuccess()
     }
 
     var email by rememberSaveable { mutableStateOf("") }
@@ -171,9 +171,8 @@ fun LoginScreen(
         // ── Log In button ──────────────────────────────────────────────
         PrimaryButton(
             text = "Log In",
-//            onClick = { /* Email/password is visual-only for now */ },
-            onClick = onLoginSuccess,
-
+            onClick = { viewModel.loginWithEmail(email, password) },
+            enabled = uiState !is LoginUiState.Loading,
         )
 
         Spacer(Modifier.height(Spacing.lg))

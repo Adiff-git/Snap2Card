@@ -2,6 +2,7 @@ package com.snap2card.feature.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.snap2card.feature.auth.domain.usecase.LoginWithEmailUseCase
 import com.snap2card.feature.auth.domain.usecase.SignInWithGoogleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,12 +13,28 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
+    private val loginWithEmailUseCase: LoginWithEmailUseCase,
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    /** Email/password login — primary auth flow. */
+    fun loginWithEmail(email: String, password: String) {
+        if (email.isBlank() || password.isBlank()) {
+            _uiState.value = LoginUiState.Error("Please enter email and password")
+            return
+        }
+        viewModelScope.launch {
+            _uiState.value = LoginUiState.Loading
+            loginWithEmailUseCase(email, password)
+                .onSuccess { _uiState.value = LoginUiState.LoggedIn }
+                .onFailure { e -> _uiState.value = LoginUiState.Error(e.message ?: "Login failed") }
+        }
+    }
+
+    /** Google OAuth login — future use. */
     fun signInWithGoogle(idToken: String) {
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
