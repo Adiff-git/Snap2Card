@@ -1,5 +1,6 @@
 package com.snap2card.feature.deck.domain.usecase
 
+import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.model.Deck
 import com.snap2card.feature.deck.domain.repository.DeckRepository
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,10 @@ class CreateDeckUseCase @Inject constructor(private val repo: DeckRepository) {
 
 class DeleteDeckUseCase @Inject constructor(private val repo: DeckRepository) {
     suspend operator fun invoke(deckId: String) = repo.deleteDeck(deckId)
+}
+
+class GetCardsForDeckUseCase @Inject constructor(private val repo: DeckRepository) {
+    operator fun invoke(deckId: String): Flow<List<Card>> = repo.getCardsForDeck(deckId)
 }
 
 class AddCardUseCase @Inject constructor(private val repo: DeckRepository) {
