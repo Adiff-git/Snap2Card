@@ -75,6 +75,11 @@ fun DeckEditorScaffold(
     initialCards: List<DeckEditorCardInput> = listOf(DeckEditorCardInput()),
     showDeckInfo: Boolean = true,
     cardsSectionTitle: String? = "Cards",
+    addCardText: String = "Add Empty Card",
+    validateBeforeSave: Boolean = false,
+    validationMessage: String = "Fill in front and back for every card to save.",
+    saveTextForCount: ((Int) -> String)? = null,
+    subtitleForCount: ((Int) -> String)? = null,
     secondaryActionText: String? = null,
     onSecondaryAction: () -> Unit = {},
     onNavigateBack: () -> Unit,
@@ -84,6 +89,9 @@ fun DeckEditorScaffold(
     var deckName by remember { mutableStateOf(initialDeckName) }
     var tag by remember { mutableStateOf(initialTag) }
     val cards = remember { mutableStateListOf(*initialCards.toTypedArray()) }
+    val cardsAreValid = cards.isNotEmpty() && cards.all { it.front.isNotBlank() && it.back.isNotBlank() }
+    val effectiveSaveText = saveTextForCount?.invoke(cards.size) ?: saveText
+    val effectiveSubtitle = subtitleForCount?.invoke(cards.size) ?: subtitle
 
     Scaffold(
         modifier = modifier,
@@ -93,17 +101,20 @@ fun DeckEditorScaffold(
         },
         bottomBar = {
             DeckEditorBottomBar(
-                saveText = saveText,
+                saveText = effectiveSaveText,
                 secondaryActionText = secondaryActionText,
                 onSecondaryAction = onSecondaryAction,
+                saveEnabled = !validateBeforeSave || cardsAreValid,
                 onSave = {
-                    onSave(
-                        DeckEditorResult(
-                            deckName = deckName,
-                            tag = tag,
-                            cards = cards.toList(),
+                    if (!validateBeforeSave || cardsAreValid) {
+                        onSave(
+                            DeckEditorResult(
+                                deckName = deckName,
+                                tag = tag,
+                                cards = cards.toList(),
+                            )
                         )
-                    )
+                    }
                 },
             )
         },
@@ -135,9 +146,9 @@ fun DeckEditorScaffold(
                         }
                     }
                 }
-                if (subtitle.isNotBlank()) {
+                if (effectiveSubtitle.isNotBlank()) {
                     Text(
-                        subtitle,
+                        effectiveSubtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = Spacing.xs),
@@ -164,6 +175,7 @@ fun DeckEditorScaffold(
                     index = index,
                     card = card,
                     canDelete = cards.size > 1,
+                    showValidation = validateBeforeSave,
                     onFrontChange = { cards[index] = card.copy(front = it) },
                     onBackChange = { cards[index] = card.copy(back = it) },
                     onDelete = { cards.removeAt(index) },
@@ -177,7 +189,16 @@ fun DeckEditorScaffold(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Indigo500),
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Add Empty Card", modifier = Modifier.padding(start = Spacing.xs))
+                    Text(addCardText, modifier = Modifier.padding(start = Spacing.xs))
+                }
+            }
+            if (validateBeforeSave && !cardsAreValid) {
+                item {
+                    Text(
+                        text = validationMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -261,6 +282,7 @@ private fun ManualCardEditor(
     index: Int,
     card: DeckEditorCardInput,
     canDelete: Boolean,
+    showValidation: Boolean,
     onFrontChange: (String) -> Unit,
     onBackChange: (String) -> Unit,
     onDelete: () -> Unit,
@@ -292,6 +314,7 @@ private fun ManualCardEditor(
                 onValueChange = onFrontChange,
                 placeholder = "Enter term or question...",
                 minHeight = 72.dp,
+                isError = showValidation && card.front.isBlank(),
             )
             Text("Back (Definition)", style = MaterialTheme.typography.labelSmall)
             FlatTextField(
@@ -299,6 +322,7 @@ private fun ManualCardEditor(
                 onValueChange = onBackChange,
                 placeholder = "Enter definition or answer...",
                 minHeight = 96.dp,
+                isError = showValidation && card.back.isBlank(),
             )
         }
     }
@@ -311,6 +335,7 @@ private fun FlatTextField(
     placeholder: String,
     singleLine: Boolean = false,
     minHeight: androidx.compose.ui.unit.Dp = 54.dp,
+    isError: Boolean = false,
 ) {
     TextField(
         value = value,
@@ -320,6 +345,7 @@ private fun FlatTextField(
             .height(minHeight),
         placeholder = { Text(placeholder, style = MaterialTheme.typography.bodySmall) },
         singleLine = singleLine,
+        isError = isError,
         shape = MaterialTheme.shapes.small,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = InputBackground,
@@ -327,6 +353,8 @@ private fun FlatTextField(
             disabledContainerColor = InputBackground,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
+            errorContainerColor = InputBackground,
+            errorIndicatorColor = MaterialTheme.colorScheme.error,
         ),
     )
 }
@@ -336,6 +364,7 @@ private fun DeckEditorBottomBar(
     saveText: String,
     secondaryActionText: String?,
     onSecondaryAction: () -> Unit,
+    saveEnabled: Boolean,
     onSave: () -> Unit,
 ) {
     Surface(color = Color.White, shadowElevation = 8.dp) {
@@ -358,12 +387,14 @@ private fun DeckEditorBottomBar(
                 PrimaryButton(
                     text = saveText,
                     onClick = onSave,
+                    enabled = saveEnabled,
                     modifier = Modifier.weight(1.45f),
                 )
             } else {
                 PrimaryButton(
                     text = saveText,
                     onClick = onSave,
+                    enabled = saveEnabled,
                     modifier = Modifier.fillMaxWidth(0.72f),
                 )
             }

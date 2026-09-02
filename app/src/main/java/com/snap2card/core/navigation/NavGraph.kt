@@ -147,13 +147,10 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
             onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
         )
     }
-    composable(Screen.CardGenerationInput.route) { backStackEntry ->
+    composable(Screen.CardGenerationInput.route) {
         CardGenerationInputScreen(
-            sourceType = backStackEntry.arguments?.getString("sourceType").orEmpty(),
-            uri = backStackEntry.arguments?.getString("uri").orEmpty(),
-            mimeType = backStackEntry.arguments?.getString("mimeType").orEmpty(),
-            name = backStackEntry.arguments?.getString("name"),
             onNavigateBack = { navController.popBackStack() },
+            onCardsSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
         )
     }
     composable(Screen.Study.route) { backStackEntry ->
