@@ -21,7 +21,12 @@ import com.snap2card.design_system.components.navigation.AppBottomNav
 import com.snap2card.feature.account.presentation.AccountScreen
 import com.snap2card.feature.auth.presentation.login.LoginScreen
 import com.snap2card.feature.auth.presentation.splash.SplashScreen
+import com.snap2card.feature.card_generation.presentation.CardGenerationInputScreen
+import com.snap2card.feature.card_generation.presentation.GeneratedCardsScreen
+import com.snap2card.feature.deck.presentation.create.CameraInputScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
+import com.snap2card.feature.deck.presentation.create.ImportDocumentScreen
+import com.snap2card.feature.deck.presentation.create.ManualCardEditorScreen
 import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
 import com.snap2card.feature.history.presentation.HistoryScreen
@@ -97,7 +102,32 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.CreateDeck.route) {
         CreateDeckScreen(
             onDeckCreated = { deckId -> navController.navigate(Screen.DeckDetail.createRoute(deckId)) { popUpTo(Screen.CreateDeck.route) { inclusive = true } } },
+            onScanWithCamera = { navController.navigate(Screen.CreateDeckCamera.route) },
+            onImportDocument = { navController.navigate(Screen.CreateDeckDocument.route) },
+            onAddCardsManually = { navController.navigate(Screen.CreateDeckManual.route) },
             onNavigateBack = { navController.popBackStack() },
+        )
+    }
+    composable(Screen.CreateDeckCamera.route) {
+        CameraInputScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onUsePhoto = { uri, mimeType, name ->
+                navController.navigate(Screen.CardGenerationInput.createRoute("camera", uri.toString(), mimeType, name))
+            },
+        )
+    }
+    composable(Screen.CreateDeckDocument.route) {
+        ImportDocumentScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onGenerateCards = { uri, mimeType, name ->
+                navController.navigate(Screen.CardGenerationInput.createRoute("document", uri.toString(), mimeType, name))
+            },
+        )
+    }
+    composable(Screen.CreateDeckManual.route) {
+        ManualCardEditorScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onCardsSaved = { navController.popBackStack() },
         )
     }
     composable(Screen.DeckDetail.route) { backStackEntry ->
@@ -119,9 +149,17 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.Snap2Card.route) {
         Snap2CardScreen(onCardsGenerated = { jobId -> navController.navigate(Screen.GeneratedCards.createRoute(jobId)) })
     }
-    composable(Screen.GeneratedCards.route) { backStackEntry ->
-        val jobId = backStackEntry.arguments?.getString("jobId") ?: return@composable
-        // TODO: GeneratedCardsScreen(jobId = jobId, …)
+    composable(Screen.GeneratedCards.route) {
+        GeneratedCardsScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+        )
+    }
+    composable(Screen.CardGenerationInput.route) {
+        CardGenerationInputScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onCardsSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+        )
     }
     composable(Screen.Study.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable

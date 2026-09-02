@@ -34,9 +34,9 @@ fun EditDeckScreen(
             ),
         ),
         showDeckInfo = false,
-        showSourceOptions = false,
+        cardsSectionTitle = null,
         secondaryActionText = "Regenerate",
         onNavigateBack = onNavigateBack,
-        onSave = { onDeckSaved(deckId) },
+        onSave = { _ -> onDeckSaved(deckId) },
     )
 }
