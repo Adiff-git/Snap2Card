@@ -1,22 +1,26 @@
 package com.snap2card.core.navigation
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.snap2card.core.debug.SeedDebugData
+import com.snap2card.core.debug.SeedDebugViewModel
 import com.snap2card.design_system.components.navigation.AppBottomNav
 import com.snap2card.feature.account.presentation.AccountScreen
 import com.snap2card.feature.auth.presentation.login.LoginScreen
@@ -29,6 +33,7 @@ import com.snap2card.feature.home.presentation.HomeScreen
 import com.snap2card.feature.settings.presentation.SettingsScreen
 import com.snap2card.feature.snap2card.presentation.capture.Snap2CardScreen
 import com.snap2card.feature.study.presentation.StudyScreen
+import kotlinx.coroutines.launch
 
 /** Bottom nav routes that should show the bottom bar. */
 private val bottomNavRoutes = setOf(
@@ -56,7 +61,7 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
             authNavGraph(navController)
             mainNavGraph(navController)
@@ -102,11 +107,25 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     }
     composable(Screen.DeckDetail.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
-        EditDeckScreen(
-            deckId = deckId,
-            onNavigateBack = { navController.popBackStack() },
-            onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
-        )
+        val scope = rememberCoroutineScope()
+        val seedViewModel: SeedDebugViewModel = hiltViewModel() // NOT TO BE COMMITTED
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            EditDeckScreen(
+                deckId = deckId,
+                onNavigateBack = { navController.popBackStack() },
+                onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+            )
+            Button(
+                onClick = {
+                    scope.launch {
+                        val seedDeckId = seedViewModel.seed() // NOT TO BE COMMITTED
+                        navController.navigate(Screen.Study.createRoute(seedDeckId))
+                    }
+                },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
+            ) { Text("Study (temp)") }
+        }
     }
     composable(Screen.EditDeck.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
