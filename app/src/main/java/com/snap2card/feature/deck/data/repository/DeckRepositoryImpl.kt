@@ -5,12 +5,17 @@ import com.snap2card.feature.deck.data.local.dao.CardDao
 import com.snap2card.feature.deck.data.local.dao.DeckDao
 import com.snap2card.feature.deck.data.local.entity.CardEntity
 import com.snap2card.feature.deck.data.local.entity.DeckEntity
+import com.snap2card.feature.deck.data.mapper.toDeck
 import com.snap2card.feature.deck.data.mapper.toDomain
 import com.snap2card.feature.deck.data.mapper.toEntity
+import com.snap2card.feature.deck.data.remote.DeckApiService
 import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.model.Deck
 import com.snap2card.feature.deck.domain.repository.DeckRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 import javax.inject.Inject
@@ -20,9 +25,20 @@ import javax.inject.Singleton
 class DeckRepositoryImpl @Inject constructor(
     private val deckDao: DeckDao,
     private val cardDao: CardDao,
+    private val deckApiService: DeckApiService,
 ) : DeckRepository {
 
-    override fun getDecks(): Flow<List<Deck>> =
+    override fun getDecks(): Flow<List<Deck>> = flow {
+        try {
+            val decks = deckApiService.getCategoryList().data.categories.map { it.toDeck() }
+            emit(decks)
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            emitAll(localDecks())
+        }
+    }
+
+    private fun localDecks(): Flow<List<Deck>> =
         deckDao.getAllDecks().map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun getDeckById(deckId: String): Deck? =

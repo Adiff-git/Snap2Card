@@ -12,59 +12,53 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.snap2card.design_system.theme.AppBackground
-import com.snap2card.design_system.theme.BiologyTagBackground
-import com.snap2card.design_system.theme.BiologyTagText
-import com.snap2card.design_system.theme.HistoryTagBackground
-import com.snap2card.design_system.theme.HistoryTagText
 import com.snap2card.design_system.theme.Indigo500
 import com.snap2card.design_system.theme.InputBackground
-import com.snap2card.design_system.theme.LanguageTagBackground
-import com.snap2card.design_system.theme.LanguageTagText
-import com.snap2card.design_system.theme.ProgressTrack
 import com.snap2card.design_system.theme.Spacing
+import com.snap2card.feature.deck.domain.model.Deck
 
 /** My Decks screen. Developer B owns this. */
 @Composable
 fun DeckListScreen(
     onDeckClick: (String) -> Unit,
     onCreateDeck: () -> Unit,
+    viewModel: DeckListViewModel = hiltViewModel(),
 ) {
-    val sampleDecks = remember {
-        listOf(
-            DeckListItemUi("1", "Biology", "Cellular Respiration", 45, 0.75f),
-            DeckListItemUi("2", "Language", "Spanish Verbs - Present", 120, 0.30f),
-            DeckListItemUi("3", "History", "European Capitals", 50, 0.95f),
-        )
-    }
+    val uiState by viewModel.uiState.collectAsState()
     var query by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("All") }
-    val categories = listOf("All", "Biology", "Language", "History")
-    val visibleDecks = sampleDecks.filter { deck ->
-        val matchesCategory = selectedCategory == "All" || deck.category == selectedCategory
-        val matchesQuery = query.isBlank() || deck.title.contains(query, ignoreCase = true)
-        matchesCategory && matchesQuery
-    }
+    val visibleDecks = (uiState as? DeckListUiState.Success)
+        ?.decks
+        ?.filter { deck -> query.isBlank() || deck.title.contains(query, ignoreCase = true) }
+        .orEmpty()
 
     Scaffold(containerColor = AppBackground) { padding ->
         LazyColumn(
@@ -81,43 +75,24 @@ fun DeckListScreen(
             item {
                 DeckSearchField(value = query, onValueChange = { query = it })
             }
-            item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    categories.forEach { category ->
-                        item {
-                            DeckFilterChip(
-                                text = category,
-                                selected = selectedCategory == category,
-                                onClick = { selectedCategory = category },
-                            )
+
+            when (val state = uiState) {
+                DeckListUiState.Loading -> item { LoadingState() }
+                DeckListUiState.Empty -> item { EmptyState("No decks yet.") }
+                is DeckListUiState.Error -> item { ErrorState(state.message) }
+                is DeckListUiState.Success -> {
+                    if (visibleDecks.isEmpty()) {
+                        item { EmptyState("No decks found.") }
+                    } else {
+                        items(visibleDecks, key = { it.id }) { deck ->
+                            DeckCategoryCard(deck = deck, onClick = { onDeckClick(deck.id) })
                         }
                     }
-                }
-            }
-            items(visibleDecks, key = { it.id }) { deck ->
-                DeckProgressCard(deck = deck, onClick = { onDeckClick(deck.id) })
-            }
-            if (visibleDecks.isEmpty()) {
-                item {
-                    Text(
-                        text = "No decks found.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = Spacing.xl),
-                    )
                 }
             }
         }
     }
 }
-
-private data class DeckListItemUi(
-    val id: String,
-    val category: String,
-    val title: String,
-    val cardCount: Int,
-    val mastery: Float,
-)
 
 @Composable
 private fun DeckListHeader(onCreateDeck: () -> Unit) {
@@ -161,23 +136,39 @@ private fun DeckSearchField(value: String, onValueChange: (String) -> Unit) {
 }
 
 @Composable
-private fun DeckFilterChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = if (selected) Indigo500 else InputBackground,
+private fun LoadingState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = Spacing.xl),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
-        )
+        CircularProgressIndicator(color = Indigo500)
     }
 }
 
 @Composable
-private fun DeckProgressCard(deck: DeckListItemUi, onClick: () -> Unit) {
+private fun EmptyState(message: String) {
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = Spacing.xl),
+    )
+}
+
+@Composable
+private fun ErrorState(message: String) {
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.padding(top = Spacing.xl),
+    )
+}
+
+@Composable
+private fun DeckCategoryCard(deck: Deck, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,7 +181,6 @@ private fun DeckProgressCard(deck: DeckListItemUi, onClick: () -> Unit) {
             modifier = Modifier.padding(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         ) {
-            DeckTag(deck.category)
             Text(
                 text = deck.title,
                 style = MaterialTheme.typography.titleLarge,
@@ -199,56 +189,20 @@ private fun DeckProgressCard(deck: DeckListItemUi, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "${deck.cardCount} Cards",
+                text = if (deck.cardCount > 0) "${deck.cardCount} Cards" else "Card count unavailable",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.height(Spacing.sm))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            if (deck.description.isNotBlank()) {
+                Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    text = "Mastery",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = deck.description,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    text = "${(deck.mastery * 100).toInt()}%",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(7.dp)
-                    .clip(MaterialTheme.shapes.extraLarge)
-                    .background(ProgressTrack),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(deck.mastery)
-                        .height(7.dp)
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .background(Indigo500),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun DeckTag(category: String) {
-    val colors = when (category) {
-        "Biology" -> BiologyTagBackground to BiologyTagText
-        "Language" -> LanguageTagBackground to LanguageTagText
-        else -> HistoryTagBackground to HistoryTagText
-    }
-    Surface(shape = MaterialTheme.shapes.extraLarge, color = colors.first) {
-        Text(
-            text = category,
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.second,
-            modifier = Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.xs),
-        )
     }
 }

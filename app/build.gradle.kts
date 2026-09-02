@@ -23,7 +23,7 @@ android {
         // Web client ID for Google Sign-In — replace with your actual client ID
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"YOUR_WEB_CLIENT_ID_HERE\"")
         // Backend base URL — replace per environment
-        buildConfigField("String", "BASE_URL", "\"https://api.snap2card.dev/\"")
+        buildConfigField("String", "BASE_URL", "\"https://api.snap2card.dev/snap2card/api/v1.0/\"")
     }
 
     buildTypes {
