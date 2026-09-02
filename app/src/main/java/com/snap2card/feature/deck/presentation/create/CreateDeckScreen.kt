@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.ButtonDefaults
@@ -45,7 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.snap2card.design_system.components.buttons.PrimaryButton
+import com.snap2card.design_system.components.buttons.SecondaryButton
 import com.snap2card.design_system.theme.AppBackground
 import com.snap2card.design_system.theme.BiologyTagBackground
 import com.snap2card.design_system.theme.Indigo500
@@ -58,7 +59,9 @@ import com.snap2card.design_system.theme.Spacing
 @Composable
 fun CreateDeckScreen(
     onDeckCreated: (deckId: String) -> Unit,
-    onCardCreationMethodSelected: (method: String) -> Unit,
+    onScanWithCamera: () -> Unit,
+    onImportDocument: () -> Unit,
+    onAddCardsManually: () -> Unit,
     onNavigateBack: () -> Unit,
 ) {
     var deckName by remember { mutableStateOf("") }
@@ -72,8 +75,8 @@ fun CreateDeckScreen(
         },
         bottomBar = {
             Surface(color = Color.White, shadowElevation = 8.dp) {
-                PrimaryButton(
-                    text = "Create Deck",
+                SecondaryButton(
+                    text = "Create empty deck",
                     onClick = { onDeckCreated(previewDeckId) },
                     modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
                 )
@@ -110,7 +113,7 @@ fun CreateDeckScreen(
                 subtitle = "Capture notes or textbook pages and generate cards.",
                 iconBackground = Indigo500,
                 iconTint = Color.White,
-                onClick = { onCardCreationMethodSelected("camera") },
+                onClick = onScanWithCamera,
             )
             CardCreationMethodCard(
                 icon = Icons.Default.UploadFile,
@@ -118,7 +121,7 @@ fun CreateDeckScreen(
                 subtitle = "Upload PDFs or images from your device.",
                 iconBackground = BiologyTagBackground,
                 iconTint = Indigo500,
-                onClick = { onCardCreationMethodSelected("document") },
+                onClick = onImportDocument,
             )
             CardCreationMethodCard(
                 icon = Icons.Default.EditNote,
@@ -126,7 +129,7 @@ fun CreateDeckScreen(
                 subtitle = "Type your own terms and definitions before review.",
                 iconBackground = MedicalTagBackground,
                 iconTint = Indigo500,
-                onClick = { onCardCreationMethodSelected("manual") },
+                onClick = onAddCardsManually,
             )
         }
     }
@@ -240,6 +243,11 @@ private fun CardCreationMethodCard(
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

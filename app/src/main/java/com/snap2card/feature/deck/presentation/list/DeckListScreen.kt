@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -40,7 +43,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.snap2card.design_system.components.buttons.PrimaryButton
 import com.snap2card.design_system.theme.AppBackground
+import com.snap2card.design_system.theme.Indigo100
 import com.snap2card.design_system.theme.Indigo500
 import com.snap2card.design_system.theme.InputBackground
 import com.snap2card.design_system.theme.Spacing
@@ -78,11 +83,11 @@ fun DeckListScreen(
 
             when (val state = uiState) {
                 DeckListUiState.Loading -> item { LoadingState() }
-                DeckListUiState.Empty -> item { EmptyState("No decks yet.") }
+                DeckListUiState.Empty -> item { DeckEmptyState(onCreateDeck = onCreateDeck) }
                 is DeckListUiState.Error -> item { ErrorState(state.message) }
                 is DeckListUiState.Success -> {
                     if (visibleDecks.isEmpty()) {
-                        item { EmptyState("No decks found.") }
+                        item { SearchEmptyState() }
                     } else {
                         items(visibleDecks, key = { it.id }) { deck ->
                             DeckCategoryCard(deck = deck, onClick = { onDeckClick(deck.id) })
@@ -148,9 +153,53 @@ private fun LoadingState() {
 }
 
 @Composable
-private fun EmptyState(message: String) {
+private fun DeckEmptyState(onCreateDeck: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(360.dp)
+            .padding(horizontal = Spacing.md),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+        ) {
+            Surface(
+                modifier = Modifier.size(72.dp),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = Indigo100,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Filled.GridView,
+                        contentDescription = null,
+                        tint = Indigo500,
+                        modifier = Modifier.size(34.dp),
+                    )
+                }
+            }
+            Text(
+                text = "No decks yet",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = "Create your first deck and start turning notes into flashcards.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(Spacing.sm))
+            PrimaryButton(text = "Create Deck", onClick = onCreateDeck)
+        }
+    }
+}
+
+@Composable
+private fun SearchEmptyState() {
     Text(
-        text = message,
+        text = "No decks found.",
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = Spacing.xl),

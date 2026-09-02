@@ -15,6 +15,7 @@ import com.snap2card.design_system.components.navigation.AppBottomNav
 import com.snap2card.feature.auth.presentation.login.LoginScreen
 import com.snap2card.feature.auth.presentation.splash.SplashScreen
 import com.snap2card.feature.card_generation.presentation.GeneratedCardsScreen
+import com.snap2card.feature.deck.presentation.create.CardCreationMethodPlaceholderScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
 import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
@@ -90,7 +91,30 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.CreateDeck.route) {
         CreateDeckScreen(
             onDeckCreated = { deckId -> navController.navigate(Screen.DeckDetail.createRoute(deckId)) { popUpTo(Screen.CreateDeck.route) { inclusive = true } } },
-            onCardCreationMethodSelected = { method -> navController.navigate(Screen.GeneratedCards.createRoute(method)) },
+            onScanWithCamera = { navController.navigate(Screen.CreateDeckCamera.route) },
+            onImportDocument = { navController.navigate(Screen.CreateDeckDocument.route) },
+            onAddCardsManually = { navController.navigate(Screen.CreateDeckManual.route) },
+            onNavigateBack = { navController.popBackStack() },
+        )
+    }
+    composable(Screen.CreateDeckCamera.route) {
+        CardCreationMethodPlaceholderScreen(
+            title = "Scan with Camera",
+            description = "Camera-based card creation will be implemented in the next phase.",
+            onNavigateBack = { navController.popBackStack() },
+        )
+    }
+    composable(Screen.CreateDeckDocument.route) {
+        CardCreationMethodPlaceholderScreen(
+            title = "Import Document",
+            description = "Document import for deck creation will be implemented in the next phase.",
+            onNavigateBack = { navController.popBackStack() },
+        )
+    }
+    composable(Screen.CreateDeckManual.route) {
+        CardCreationMethodPlaceholderScreen(
+            title = "Add Cards Manually",
+            description = "Manual card entry for deck creation will be implemented in the next phase.",
             onNavigateBack = { navController.popBackStack() },
         )
     }
