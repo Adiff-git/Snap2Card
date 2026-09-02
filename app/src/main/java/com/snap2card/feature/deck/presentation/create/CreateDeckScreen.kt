@@ -69,12 +69,12 @@ fun CreateDeckScreen(
     val previewDeckId = deckName.ifBlank { "preview-deck" }.trim().lowercase().replace(" ", "-")
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             CreateDeckTopBar(onNavigateBack = onNavigateBack)
         },
         bottomBar = {
-            Surface(color = Color.White, shadowElevation = 8.dp) {
+            Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
                 SecondaryButton(
                     text = "Create empty deck",
                     onClick = { onDeckCreated(previewDeckId) },
@@ -112,7 +112,7 @@ fun CreateDeckScreen(
                 title = "Scan with Camera",
                 subtitle = "Capture notes or textbook pages and generate cards.",
                 iconBackground = Indigo500,
-                iconTint = Color.White,
+                iconTint = MaterialTheme.colorScheme.onPrimary,
                 onClick = onScanWithCamera,
             )
             CardCreationMethodCard(
@@ -167,7 +167,7 @@ private fun DeckSetupCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
@@ -222,7 +222,7 @@ private fun CardCreationMethodCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(

@@ -3,6 +3,8 @@ package com.snap2card.feature.home.data.repository
 import com.snap2card.feature.home.domain.model.DashboardData
 import com.snap2card.feature.home.domain.model.RecentDeck
 import com.snap2card.feature.home.domain.repository.DashboardRepository
+import com.snap2card.feature.settings.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,9 +14,12 @@ import javax.inject.Singleton
  * once the backend endpoints are available.
  */
 @Singleton
-class FakeDashboardRepository @Inject constructor() : DashboardRepository {
+class FakeDashboardRepository @Inject constructor(
+    private val settingsRepository: SettingsRepository
+) : DashboardRepository {
 
     override suspend fun getDashboard(): DashboardData {
+        val settings = settingsRepository.getSettings().first()
         return DashboardData(
             userName = "Scholar",
             userPhotoUrl = null,
@@ -49,8 +54,8 @@ class FakeDashboardRepository @Inject constructor() : DashboardRepository {
                     masteryPercent = 0.60f,
                 ),
             ),
-            dailyGoalTotal = 50,
-            dailyGoalCompleted = 25,
+            dailyGoalTotal = settings.dailyGoalCards,
+            dailyGoalCompleted = minOf(25, settings.dailyGoalCards),
         )
     }
 }

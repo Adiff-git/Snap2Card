@@ -136,7 +136,7 @@ private fun ManualFlashcardEditor(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
@@ -226,7 +226,7 @@ private fun ManualCardEditorBottomBar(
     enabled: Boolean,
     onSave: () -> Unit,
 ) {
-    Surface(color = Color.White, shadowElevation = 8.dp) {
+    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
         PrimaryButton(
             text = saveText,
             onClick = onSave,

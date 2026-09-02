@@ -90,7 +90,13 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.Home.route) {
         HomeScreen(
             onDeckClick = { deckId -> navController.navigate(Screen.DeckDetail.createRoute(deckId)) },
-            onSnapClick = { navController.navigate(Screen.Snap2Card.route) },
+            onSnapClick = { 
+                navController.navigate(Screen.Snap2Card.route) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
         )
     }
     composable(Screen.DeckList.route) {
