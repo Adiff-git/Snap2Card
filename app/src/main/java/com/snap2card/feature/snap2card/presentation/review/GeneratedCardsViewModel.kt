@@ -28,12 +28,7 @@ class GeneratedCardsViewModel @Inject constructor(
     val uiState: StateFlow<GeneratedCardsUiState> = _uiState.asStateFlow()
 
     fun regenerate() {
-        _uiState.value = GeneratedCardsUiState.Success(
-            jobId = jobId,
-            category = "Medical",
-            canRegenerate = true,
-            cards = sampleCards(),
-        )
+        // TODO: Re-run the original source through the generation pipeline.
     }
 
     fun updateDeckName(value: String) {
@@ -119,19 +114,8 @@ class GeneratedCardsViewModel @Inject constructor(
             )
         }
 
-        return if (jobId == "manual" || jobId == "local") {
-            sampleState()
-        } else {
-            GeneratedCardsUiState.Error("Generated cards are no longer available. Please scan the image again.")
-        }
+        return GeneratedCardsUiState.Error("Generated cards are no longer available. Please scan the image again.")
     }
-
-    private fun sampleState(): GeneratedCardsUiState = GeneratedCardsUiState.Success(
-        jobId = jobId,
-        category = if (jobId == "manual") "Manual" else "Medical",
-        canRegenerate = jobId != "manual",
-        cards = if (jobId == "manual") emptyList() else sampleCards(),
-    )
 
     private fun updateCard(cardId: String, transform: (GeneratedCardReviewItem) -> GeneratedCardReviewItem) {
         updateSuccess { state ->
@@ -159,27 +143,4 @@ class GeneratedCardsViewModel @Inject constructor(
         difficulty = difficulty,
     )
 
-    private fun sampleCards(): List<GeneratedCardReviewItem> = listOf(
-        GeneratedCardReviewItem(
-            id = "sample-mitochondria",
-            term = "Mitochondria",
-            definition = "The part of a cell that produces energy.",
-            translation = "ty thể",
-            partOfSpeech = "noun",
-        ),
-        GeneratedCardReviewItem(
-            id = "sample-nucleus",
-            term = "Nucleus",
-            definition = "The central part of a cell that contains genetic material.",
-            translation = "nhân tế bào",
-            partOfSpeech = "noun",
-        ),
-        GeneratedCardReviewItem(
-            id = "sample-ribosome",
-            term = "Ribosome",
-            definition = "A cell structure that makes proteins.",
-            translation = "ribosome",
-            partOfSpeech = "noun",
-        ),
-    )
 }
