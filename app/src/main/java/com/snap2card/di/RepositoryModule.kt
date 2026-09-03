@@ -5,6 +5,8 @@ import com.snap2card.feature.account.data.repository.FakeAuthRepositoryImpl
 import com.snap2card.feature.account.domain.repository.AccountRepository
 import com.snap2card.feature.auth.data.repository.AuthRepositoryImpl
 import com.snap2card.feature.auth.domain.repository.AuthRepository
+import com.snap2card.feature.card_generation.data.repository.VocabularyGenerationRepositoryImpl
+import com.snap2card.feature.card_generation.domain.repository.VocabularyGenerationRepository
 import com.snap2card.feature.deck.data.repository.DeckRepositoryImpl
 import com.snap2card.feature.deck.domain.repository.DeckRepository
 import com.snap2card.feature.home.data.repository.FakeDashboardRepository
@@ -51,4 +53,9 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindDashboardRepository(impl: FakeDashboardRepository): DashboardRepository
+
+    @Binds @Singleton
+    abstract fun bindVocabularyGenerationRepository(
+        impl: VocabularyGenerationRepositoryImpl,
+    ): VocabularyGenerationRepository
 }

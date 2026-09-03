@@ -1,6 +1,7 @@
 package com.snap2card.di
 
 import com.snap2card.feature.auth.data.remote.AuthApiService
+import com.snap2card.feature.card_generation.data.remote.VocabularyApiService
 import com.snap2card.feature.deck.data.remote.DeckApiService
 import com.snap2card.feature.snap2card.data.remote.OcrApiService
 import dagger.Module
@@ -30,4 +31,8 @@ object ApiServiceModule {
     @Provides @Singleton
     fun provideOcrApiService(retrofit: Retrofit): OcrApiService =
         retrofit.create(OcrApiService::class.java)
+
+    @Provides @Singleton
+    fun provideVocabularyApiService(retrofit: Retrofit): VocabularyApiService =
+        retrofit.create(VocabularyApiService::class.java)
 }
