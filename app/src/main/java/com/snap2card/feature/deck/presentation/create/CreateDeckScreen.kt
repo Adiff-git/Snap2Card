@@ -36,6 +36,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.snap2card.design_system.components.buttons.SecondaryButton
 import com.snap2card.design_system.theme.AppBackground
 import com.snap2card.design_system.theme.BiologyTagBackground
@@ -64,10 +67,18 @@ fun CreateDeckScreen(
     onImportDocument: () -> Unit,
     onAddCardsManually: () -> Unit,
     onNavigateBack: () -> Unit,
+    viewModel: CreateDeckViewModel = hiltViewModel(),
 ) {
     var deckName by remember { mutableStateOf("") }
     var tag by remember { mutableStateOf("Medical") }
-    val previewDeckId = deckName.ifBlank { "preview-deck" }.trim().lowercase().replace(" ", "-")
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState) {
+        val state = uiState
+        if (state is CreateDeckUiState.Success) {
+            onDeckCreated(state.deckId)
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -77,8 +88,9 @@ fun CreateDeckScreen(
         bottomBar = {
             Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
                 SecondaryButton(
-                    text = "Create empty deck",
-                    onClick = { onDeckCreated(previewDeckId) },
+                    text = if (uiState is CreateDeckUiState.Loading) "Creating..." else "Create empty deck",
+                    onClick = { viewModel.createDeck(deckName, tag) },
+                    enabled = uiState !is CreateDeckUiState.Loading,
                     modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
                 )
             }
@@ -98,6 +110,14 @@ fun CreateDeckScreen(
                 tag = tag,
                 onAddTag = { tag = if (tag.isBlank()) "Medical" else tag },
             )
+
+            if (uiState is CreateDeckUiState.Error) {
+                Text(
+                    text = (uiState as CreateDeckUiState.Error).message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
             Spacer(Modifier.height(Spacing.xs))
 

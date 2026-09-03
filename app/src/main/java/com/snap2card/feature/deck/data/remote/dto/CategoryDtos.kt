@@ -19,7 +19,27 @@ data class CategoryListData(
 data class CategoryDto(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
+    @SerialName("numOfCard") val numOfCard: Int = 0,
     @SerialName("createdAt") val createdAt: ApiTimeDto? = null,
+)
+
+@Serializable
+data class CategoryRetrieveRequest(
+    @SerialName("id") val id: String,
+)
+
+@Serializable
+data class CategoryRetrieveResponse(
+    @SerialName("status") val status: String? = null,
+    @SerialName("data") val data: CategoryRetrieveData,
+)
+
+@Serializable
+data class CategoryRetrieveData(
+    @SerialName("name") val name: String,
+    @SerialName("numOfCard") val numOfCard: Int = 0,
+    @SerialName("createdAt") val createdAt: ApiTimeDto? = null,
+    @SerialName("cardIds") val cardIds: List<String> = emptyList(),
 )
 
 @Serializable

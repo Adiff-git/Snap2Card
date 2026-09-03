@@ -25,12 +25,11 @@ import com.snap2card.design_system.components.buttons.SecondaryButton
 import com.snap2card.design_system.components.navigation.AppTopBar
 import com.snap2card.design_system.theme.Indigo500
 import com.snap2card.design_system.theme.Spacing
-import com.snap2card.feature.deck.presentation.editor.DeckEditorScaffold
 
 @Composable
 fun CardGenerationInputScreen(
     onNavigateBack: () -> Unit,
-    onCardsSaved: () -> Unit,
+    onCardsGenerated: (jobId: String) -> Unit,
     viewModel: CardGenerationInputViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -46,28 +45,14 @@ fun CardGenerationInputScreen(
             onRetry = viewModel::retry,
             onNavigateBack = onNavigateBack,
         )
-        is CardGenerationInputUiState.Success -> DeckEditorScaffold(
-            topBarTitle = "Review & Edit",
-            title = "Generated Cards",
-            subtitle = "",
-            subtitleForCount = { count -> "$count ${if (count == 1) "card" else "cards"} • ${state.source.displayName}" },
-            titleTag = state.source.type.replaceFirstChar { it.uppercase() },
-            saveText = "Save Cards",
-            saveTextForCount = { count -> "Save $count ${if (count == 1) "Card" else "Cards"}" },
-            initialDeckName = "Generated Deck",
-            initialTag = state.source.displayName,
-            initialCards = state.cards,
-            showDeckInfo = false,
-            cardsSectionTitle = null,
-            addCardText = "Add Card",
-            validateBeforeSave = true,
-            onNavigateBack = onNavigateBack,
-            onSave = { result ->
-                if (viewModel.saveReviewedCards(result.cards)) {
-                    onCardsSaved()
-                }
-            },
-        )
+        is CardGenerationInputUiState.Success -> {
+            androidx.compose.runtime.LaunchedEffect(state.jobId) { onCardsGenerated(state.jobId) }
+            GeneratingCardsContent(
+                source = state.source,
+                onNavigateBack = onNavigateBack,
+                message = "Opening results...",
+            )
+        }
     }
 }
 
@@ -75,6 +60,7 @@ fun CardGenerationInputScreen(
 private fun GeneratingCardsContent(
     source: GenerationSource,
     onNavigateBack: () -> Unit,
+    message: String = "Analyzing your notes and creating flashcards...",
 ) {
     Scaffold(
         topBar = {
@@ -96,7 +82,7 @@ private fun GeneratingCardsContent(
             CircularProgressIndicator(color = Indigo500)
             Spacer(Modifier.height(Spacing.md))
             Text(
-                text = "Analyzing your notes and creating flashcards...",
+                text = message,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

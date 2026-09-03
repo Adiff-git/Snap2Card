@@ -4,8 +4,8 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.snap2card.feature.deck.presentation.editor.DeckEditorCardInput
 import com.snap2card.feature.snap2card.domain.usecase.UploadImageForOcrUseCase
+import com.snap2card.feature.snap2card.domain.vocabulary.repository.GeneratedVocabularyCardStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +27,7 @@ sealed class CardGenerationInputUiState {
     data class Loading(val source: GenerationSource) : CardGenerationInputUiState()
     data class Success(
         val source: GenerationSource,
-        val cards: List<DeckEditorCardInput>,
+        val jobId: String,
     ) : CardGenerationInputUiState()
     data class Error(
         val source: GenerationSource?,
@@ -39,6 +39,7 @@ sealed class CardGenerationInputUiState {
 class CardGenerationInputViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val uploadImageForOcrUseCase: UploadImageForOcrUseCase,
+    private val generatedVocabularyCardStore: GeneratedVocabularyCardStore,
 ) : ViewModel() {
 
     private val source = runCatching {
@@ -70,14 +71,6 @@ class CardGenerationInputViewModel @Inject constructor(
         generate()
     }
 
-    fun saveReviewedCards(cards: List<DeckEditorCardInput>): Boolean {
-        if (cards.any { it.front.isBlank() || it.back.isBlank() }) return false
-
-        // TODO: Persist reviewed generated cards once this flow has a real deck/category id.
-        // Existing save APIs need a target deck/category before calling DeckRepository.addCard/addCards.
-        return true
-    }
-
     private fun generate() {
         val generationSource = source
         if (generationSource == null) {
@@ -87,12 +80,19 @@ class CardGenerationInputViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.value = CardGenerationInputUiState.Loading(generationSource)
-            uploadImageForOcrUseCase(generationSource.uri, generationSource.mimeType, generationSource.displayName)
-                .onSuccess { generated ->
-                    val cards = listOf(
-                        DeckEditorCardInput(front = generated.front, back = generated.back)
-                    )
-                    _uiState.value = CardGenerationInputUiState.Success(generationSource, cards)
+            uploadImageForOcrUseCase(generationSource.uri, generationSource.mimeType)
+                .onSuccess { generatedCards ->
+                    if (generatedCards.isEmpty()) {
+                        _uiState.value = CardGenerationInputUiState.Error(
+                            source = generationSource,
+                            message = "No cards were generated from this source.",
+                        )
+                    } else {
+                        _uiState.value = CardGenerationInputUiState.Success(
+                            generationSource,
+                            generatedVocabularyCardStore.save(generatedCards),
+                        )
+                    }
                 }
                 .onFailure { error ->
                     _uiState.value = CardGenerationInputUiState.Error(

@@ -1,8 +1,11 @@
 package com.snap2card.di
 
+import com.snap2card.feature.account.data.remote.AccountApiService
 import com.snap2card.feature.auth.data.remote.AuthApiService
 import com.snap2card.feature.deck.data.remote.DeckApiService
 import com.snap2card.feature.snap2card.data.remote.CardApiService
+import com.snap2card.feature.snap2card.data.vocabulary.remote.VocabularyApiService
+import com.snap2card.feature.study.data.remote.dto.ExamApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,10 +31,18 @@ object ApiServiceModule {
         retrofit.create(DeckApiService::class.java)
 
     @Provides @Singleton
-    fun provideOcrApiService(retrofit: Retrofit): CardApiService =
-        retrofit.create(CardApiService ::class.java)
+    fun provideCardApiService(retrofit: Retrofit): CardApiService =
+        retrofit.create(CardApiService::class.java)
 
     @Provides @Singleton
-    fun provideAccountApiService(retrofit: Retrofit): com.snap2card.feature.account.data.remote.AccountApiService =
-        retrofit.create(com.snap2card.feature.account.data.remote.AccountApiService::class.java)
+    fun provideAccountApiService(retrofit: Retrofit): AccountApiService =
+        retrofit.create(AccountApiService::class.java)
+
+    @Provides @Singleton
+    fun provideVocabularyApiService(retrofit: Retrofit): VocabularyApiService =
+        retrofit.create(VocabularyApiService::class.java)
+
+    @Provides @Singleton
+    fun provideExamApiService(retrofit: Retrofit): ExamApiService =
+        retrofit.create(ExamApiService::class.java)
 }

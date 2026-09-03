@@ -1,41 +1,32 @@
 package com.snap2card.core.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.snap2card.core.debug.SeedDebugViewModel
 import com.snap2card.design_system.components.navigation.AppBottomNav
 import com.snap2card.feature.account.presentation.AccountScreen
 import com.snap2card.feature.auth.presentation.login.LoginScreen
 import com.snap2card.feature.auth.presentation.splash.SplashScreen
-import com.snap2card.feature.snap2card.presentation.review.CardGenerationInputScreen
-import com.snap2card.feature.snap2card.presentation.capture.CameraInputScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
-import com.snap2card.feature.snap2card.presentation.capture.ImportDocumentScreen
-import com.snap2card.feature.snap2card.presentation.capture.ManualCardEditorScreen
 import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
 import com.snap2card.feature.history.presentation.HistoryScreen
 import com.snap2card.feature.home.presentation.HomeScreen
 import com.snap2card.feature.settings.presentation.SettingsScreen
+import com.snap2card.feature.snap2card.presentation.capture.CameraInputScreen
+import com.snap2card.feature.snap2card.presentation.capture.ImportDocumentScreen
+import com.snap2card.feature.snap2card.presentation.capture.ManualCardEditorScreen
+import com.snap2card.feature.snap2card.presentation.review.CardGenerationInputScreen
+import com.snap2card.feature.snap2card.presentation.review.GeneratedCardsScreen
 import com.snap2card.feature.study.presentation.StudyScreen
-import kotlinx.coroutines.launch
 
 /** Bottom nav routes that should show the bottom bar. */
 private val bottomNavRoutes = setOf(
@@ -62,14 +53,14 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
+            startDestination = Screen.Splash.route,
+            modifier = Modifier.padding(innerPadding),
         ) {
             authNavGraph(navController)
             mainNavGraph(navController)
             accountNavGraph(navController)
         }
-    } // Bypass
+    }
 }
 
 // ── Auth Graph ────────────────────────────────────────────────────────────────
@@ -137,25 +128,11 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     }
     composable(Screen.DeckDetail.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
-        val scope = rememberCoroutineScope()
-        val seedViewModel: SeedDebugViewModel = hiltViewModel() // NOT TO BE COMMITTED
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            EditDeckScreen(
-                deckId = deckId,
-                onNavigateBack = { navController.popBackStack() },
-                onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
-            )
-            Button(
-                onClick = {
-                    scope.launch {
-                        val seedDeckId = seedViewModel.seed() // NOT TO BE COMMITTED
-                        navController.navigate(Screen.Study.createRoute(seedDeckId))
-                    }
-                },
-                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-            ) { Text("Study (temp)") }
-        }
+        EditDeckScreen(
+            deckId = deckId,
+            onNavigateBack = { navController.popBackStack() },
+            onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+        )
     }
     composable(Screen.EditDeck.route) { backStackEntry ->
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
@@ -177,7 +154,21 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.CardGenerationInput.route) {
         CardGenerationInputScreen(
             onNavigateBack = { navController.popBackStack() },
-            onCardsSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+            onCardsGenerated = { jobId ->
+                navController.navigate(Screen.GeneratedCards.createRoute(jobId)) {
+                    popUpTo(Screen.CardGenerationInput.route) { inclusive = true }
+                }
+            },
+        )
+    }
+    composable(Screen.GeneratedCards.route) {
+        GeneratedCardsScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onDeckSaved = { deckId ->
+                navController.navigate(Screen.DeckDetail.createRoute(deckId)) {
+                    popUpTo(Screen.GeneratedCards.route) { inclusive = true }
+                }
+            },
         )
     }
     composable(Screen.Study.route) { backStackEntry ->

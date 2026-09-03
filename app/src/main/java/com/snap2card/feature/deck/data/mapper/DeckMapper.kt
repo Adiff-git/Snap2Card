@@ -4,8 +4,9 @@ import com.snap2card.core.util.DateUtil
 import com.snap2card.feature.deck.data.local.entity.CardEntity
 import com.snap2card.feature.deck.data.local.entity.DeckEntity
 import com.snap2card.feature.deck.data.remote.dto.ApiTimeDto
-import com.snap2card.feature.deck.data.remote.dto.CardDto
+import com.snap2card.feature.deck.data.remote.dto.CardDetailDto
 import com.snap2card.feature.deck.data.remote.dto.CategoryDto
+import com.snap2card.feature.deck.data.remote.dto.CategoryRetrieveData
 import com.snap2card.feature.deck.data.remote.dto.DeckDto
 import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.model.Deck
@@ -39,7 +40,20 @@ fun CategoryDto.toDeck(): Deck {
         id = id,
         title = name,
         description = "",
-        cardCount = 0,
+        cardCount = numOfCard,
+        createdAt = createdAtMillis,
+        updatedAt = createdAtMillis,
+    )
+}
+
+fun CategoryRetrieveData.toDeck(id: String): Deck {
+    val createdAtMillis = createdAt?.toEpochMillis() ?: DateUtil.now()
+
+    return Deck(
+        id = id,
+        title = name,
+        description = "",
+        cardCount = numOfCard,
         createdAt = createdAtMillis,
         updatedAt = createdAtMillis,
     )
@@ -53,8 +67,12 @@ fun Card.toEntity() = CardEntity(
     id = id, deckId = deckId, front = front, back = back, createdAt = createdAt,
 )
 
-fun CardDto.toDomain() = Card(
-    id = id, deckId = deckId, front = front, back = back, createdAt = createdAt,
+fun CardDetailDto.toDomain(deckId: String) = Card(
+    id = id,
+    deckId = deckId,
+    front = frontSide,
+    back = backSide,
+    createdAt = DateUtil.now(),
 )
 
 private fun ApiTimeDto.toEpochMillis(): Long {

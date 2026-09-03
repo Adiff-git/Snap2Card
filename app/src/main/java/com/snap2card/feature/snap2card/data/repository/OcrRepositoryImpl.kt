@@ -1,57 +1,86 @@
 package com.snap2card.feature.snap2card.data.repository
 
+import android.content.Context
 import android.net.Uri
-import com.snap2card.feature.snap2card.data.remote.CardApiService
-import com.snap2card.feature.snap2card.data.remote.ImageEncoder
-import com.snap2card.feature.snap2card.data.remote.dto.CardCreateRequest
-import com.snap2card.feature.snap2card.domain.model.GeneratedCard
+import com.snap2card.core.util.FileUtil
 import com.snap2card.feature.snap2card.domain.repository.OcrRepository
+import com.snap2card.feature.snap2card.domain.service.OcrTextProcessor
+import com.snap2card.feature.snap2card.domain.service.TextRecognitionService
+import com.snap2card.feature.snap2card.data.vocabulary.mapper.toDomain
+import com.snap2card.feature.snap2card.data.vocabulary.remote.VocabularyApiService
+import com.snap2card.feature.snap2card.data.vocabulary.remote.dto.VocabularyFromTextRequest
+import com.snap2card.feature.snap2card.domain.vocabulary.model.GeneratedVocabularyCard
+import com.snap2card.feature.snap2card.domain.vocabulary.model.VocabularyGenerationDefaults
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class OcrRepositoryImpl @Inject constructor(
-    private val apiService: CardApiService,
-    private val imageEncoder: ImageEncoder,
+    @ApplicationContext private val context: Context,
+    private val textRecognitionService: TextRecognitionService,
+    private val vocabularyApiService: VocabularyApiService,
 ) : OcrRepository {
 
-    override suspend fun submitImage(uri: Uri, mimeType: String, name: String): Result<String> {
-        val imageDto = imageEncoder.encode(uri)
-            ?: return Result.failure(IllegalArgumentException("Could not read image at $uri"))
-
-        return runCatching {
-            val response = apiService.createCard(
-                CardCreateRequest(
-                    name = name,
-                    type = "image",
-                    image = imageDto,
+    override suspend fun generateCards(uri: Uri, mimeType: String): Result<List<GeneratedVocabularyCard>> = try {
+            val response = if (mimeType == "application/pdf") {
+                vocabularyApiService.generateVocabularyFromPdf(
+                    file = FileUtil.uriToMultipart(context, uri),
+                    level = VocabularyGenerationDefaults.LEVEL.toRequestBody(),
+                    count = VocabularyGenerationDefaults.COUNT.toString().toRequestBody(),
+                    includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES.toString().toRequestBody(),
                 )
-            )
-            response.data.id
-        }
-    }
-
-    override suspend fun submitDocument(text: String, name: String): Result<String> {
-        return runCatching {
-            val response = apiService.createCard(
-                CardCreateRequest(
-                    name = name,
-                    type = "document",
-                    text = text,
+            } else {
+                val ocrResult = textRecognitionService.recognizeText(uri).getOrThrow()
+                if (!OcrTextProcessor.hasReadableText(ocrResult.text)) {
+                    throw IllegalArgumentException(OcrTextProcessor.NO_READABLE_TEXT_MESSAGE)
+                }
+                vocabularyApiService.generateVocabularyFromText(
+                    VocabularyFromTextRequest(
+                        text = ocrResult.text,
+                        level = VocabularyGenerationDefaults.LEVEL,
+                        count = VocabularyGenerationDefaults.COUNT,
+                        includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES,
+                        sourceType = "scan",
+                    )
                 )
-            )
-            response.data.id
+            }
+            Result.success(response.data.cards.toDomain())
+        } catch (error: Throwable) {
+            if (error is CancellationException) throw error
+            Result.failure(error.toGenerationFailure())
         }
+
+    private fun Throwable.toGenerationFailure(): Throwable {
+        if (this is IllegalArgumentException && !message.isNullOrBlank()) return this
+        if (this !is HttpException) {
+            return IllegalStateException("Could not generate cards. Check your connection and try again.", this)
+        }
+
+        val apiMessage = response()
+            ?.errorBody()
+            ?.string()
+            ?.extractApiMessage()
+        val message = buildString {
+            append("Vocabulary service returned HTTP ")
+            append(code())
+            if (!apiMessage.isNullOrBlank()) {
+                append(": ")
+                append(apiMessage)
+            }
+        }
+        return IllegalStateException(message, this)
     }
 
-    override suspend fun getGeneratedCard(cardId: String): Result<GeneratedCard> {
-        return runCatching {
-            val response = apiService.getCards(ids = listOf(cardId))
-            val card = response.data.firstOrNull()
-                ?: throw NoSuchElementException("Card $cardId not found in response")
-            GeneratedCard(
-                id = card.id,
-                front = card.frontSide,
-                back = card.backSide,
-            )
-        }
-    }
+    private fun String.extractApiMessage(): String? = runCatching {
+        Json.parseToJsonElement(this)
+            .jsonObject["message"]
+            ?.jsonPrimitive
+            ?.contentOrNull
+    }.getOrNull()
 }

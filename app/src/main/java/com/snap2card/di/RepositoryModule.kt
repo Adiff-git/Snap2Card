@@ -12,7 +12,9 @@ import com.snap2card.feature.home.domain.repository.DashboardRepository
 import com.snap2card.feature.settings.data.repository.SettingsRepositoryImpl
 import com.snap2card.feature.settings.domain.repository.SettingsRepository
 import com.snap2card.feature.snap2card.data.repository.OcrRepositoryImpl
+import com.snap2card.feature.snap2card.data.vocabulary.repository.VocabularyGenerationRepositoryImpl
 import com.snap2card.feature.snap2card.domain.repository.OcrRepository
+import com.snap2card.feature.snap2card.domain.vocabulary.repository.VocabularyGenerationRepository
 import com.snap2card.feature.study.data.repository.StudyRepositoryImpl
 import com.snap2card.feature.study.domain.repository.StudyRepository
 import dagger.Binds
@@ -50,4 +52,9 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindDashboardRepository(impl: FakeDashboardRepository): DashboardRepository
+
+    @Binds @Singleton
+    abstract fun bindVocabularyGenerationRepository(
+        impl: VocabularyGenerationRepositoryImpl,
+    ): VocabularyGenerationRepository
 }
