@@ -45,7 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.snap2card.design_system.components.buttons.GoogleSignInButton
 import com.snap2card.design_system.components.buttons.PrimaryButton
 import com.snap2card.design_system.components.inputs.AppTextField
-import com.snap2card.design_system.theme.Indigo100
+import com.snap2card.design_system.theme.Indigo50
 import com.snap2card.design_system.theme.Indigo500
 import com.snap2card.design_system.theme.Spacing
 import com.snap2card.design_system.theme.White
