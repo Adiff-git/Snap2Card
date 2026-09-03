@@ -3,12 +3,13 @@ package com.snap2card.feature.snap2card.data.repository
 import android.content.Context
 import android.net.Uri
 import com.snap2card.core.util.FileUtil
-import com.snap2card.feature.snap2card.domain.repository.OcrRepository
-import com.snap2card.feature.snap2card.domain.service.OcrTextProcessor
-import com.snap2card.feature.snap2card.domain.service.TextRecognitionService
 import com.snap2card.feature.snap2card.data.vocabulary.mapper.toDomain
 import com.snap2card.feature.snap2card.data.vocabulary.remote.VocabularyApiService
 import com.snap2card.feature.snap2card.data.vocabulary.remote.dto.VocabularyFromTextRequest
+import com.snap2card.feature.snap2card.domain.model.OcrResult
+import com.snap2card.feature.snap2card.domain.repository.OcrRepository
+import com.snap2card.feature.snap2card.domain.service.OcrTextProcessor
+import com.snap2card.feature.snap2card.domain.service.TextRecognitionService
 import com.snap2card.feature.snap2card.domain.vocabulary.model.GeneratedVocabularyCard
 import com.snap2card.feature.snap2card.domain.vocabulary.model.VocabularyGenerationDefaults
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,34 +28,58 @@ class OcrRepositoryImpl @Inject constructor(
     private val vocabularyApiService: VocabularyApiService,
 ) : OcrRepository {
 
-    override suspend fun generateCards(uri: Uri, mimeType: String): Result<List<GeneratedVocabularyCard>> = try {
-            val response = if (mimeType == "application/pdf") {
-                vocabularyApiService.generateVocabularyFromPdf(
-                    file = FileUtil.uriToMultipart(context, uri),
-                    level = VocabularyGenerationDefaults.LEVEL.toRequestBody(),
-                    count = VocabularyGenerationDefaults.COUNT.toString().toRequestBody(),
-                    includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES.toString().toRequestBody(),
-                )
-            } else {
-                val ocrResult = textRecognitionService.recognizeText(uri).getOrThrow()
-                if (!OcrTextProcessor.hasReadableText(ocrResult.text)) {
-                    throw IllegalArgumentException(OcrTextProcessor.NO_READABLE_TEXT_MESSAGE)
-                }
-                vocabularyApiService.generateVocabularyFromText(
-                    VocabularyFromTextRequest(
-                        text = ocrResult.text,
-                        level = VocabularyGenerationDefaults.LEVEL,
-                        count = VocabularyGenerationDefaults.COUNT,
-                        includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES,
-                        sourceType = "scan",
-                    )
-                )
-            }
-            Result.success(response.data.cards.toDomain())
-        } catch (error: Throwable) {
-            if (error is CancellationException) throw error
-            Result.failure(error.toGenerationFailure())
+    override suspend fun extractText(uri: Uri): Result<OcrResult> = try {
+        val ocrResult = textRecognitionService.recognizeText(uri).getOrThrow()
+        if (!OcrTextProcessor.hasReadableText(ocrResult.text)) {
+            throw IllegalArgumentException(OcrTextProcessor.NO_READABLE_TEXT_MESSAGE)
         }
+        Result.success(ocrResult)
+    } catch (error: Throwable) {
+        if (error is CancellationException) throw error
+        Result.failure(error.toGenerationFailure())
+    }
+
+    override suspend fun generateCardsFromText(
+        text: String,
+        sourceType: String,
+    ): Result<List<GeneratedVocabularyCard>> = try {
+        if (!OcrTextProcessor.hasReadableText(text)) {
+            throw IllegalArgumentException(OcrTextProcessor.NO_READABLE_TEXT_MESSAGE)
+        }
+        Result.success(generateVocabularyFromText(text, sourceType))
+    } catch (error: Throwable) {
+        if (error is CancellationException) throw error
+        Result.failure(error.toGenerationFailure())
+    }
+
+    override suspend fun generateCards(uri: Uri, mimeType: String): Result<List<GeneratedVocabularyCard>> = try {
+        val cards = if (mimeType == "application/pdf") {
+            vocabularyApiService.generateVocabularyFromPdf(
+                file = FileUtil.uriToMultipart(context, uri),
+                level = VocabularyGenerationDefaults.LEVEL.toRequestBody(),
+                count = VocabularyGenerationDefaults.COUNT.toString().toRequestBody(),
+                includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES.toString().toRequestBody(),
+            ).data.cards.toDomain()
+        } else {
+            val ocrResult = extractText(uri).getOrThrow()
+            generateVocabularyFromText(ocrResult.text, "scan")
+        }
+        Result.success(cards)
+    } catch (error: Throwable) {
+        if (error is CancellationException) throw error
+        Result.failure(error.toGenerationFailure())
+    }
+
+    private suspend fun generateVocabularyFromText(text: String, sourceType: String): List<GeneratedVocabularyCard> =
+        vocabularyApiService.generateVocabularyFromText(
+            VocabularyFromTextRequest(
+                text = text,
+                level = VocabularyGenerationDefaults.LEVEL,
+                count = VocabularyGenerationDefaults.COUNT,
+                includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES,
+                sourceType = sourceType,
+            )
+        ).data.cards.toDomain()
 
     private fun Throwable.toGenerationFailure(): Throwable {
         if (this is IllegalArgumentException && !message.isNullOrBlank()) return this
