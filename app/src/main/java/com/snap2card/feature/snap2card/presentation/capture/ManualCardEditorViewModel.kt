@@ -1,4 +1,4 @@
-package com.snap2card.feature.deck.presentation.create
+package com.snap2card.feature.snap2card.presentation.capture
 
 import androidx.lifecycle.ViewModel
 import com.snap2card.feature.deck.presentation.editor.DeckEditorCardInput
@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
+import kotlin.collections.plus
 
 data class ManualCardEditorUiState(
     val cards: List<DeckEditorCardInput> = listOf(DeckEditorCardInput()),

@@ -1,4 +1,4 @@
-package com.snap2card.feature.card_generation.presentation
+package com.snap2card.feature.snap2card.presentation.review
 
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle

@@ -1,4 +1,4 @@
-package com.snap2card.feature.deck.presentation.create
+package com.snap2card.feature.snap2card.presentation.capture
 
 import android.content.Intent
 import android.net.Uri
@@ -9,7 +9,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,15 +33,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.snap2card.core.util.FileUtil
 import com.snap2card.design_system.components.buttons.PrimaryButton
 import com.snap2card.design_system.components.buttons.SecondaryButton
 import com.snap2card.design_system.components.navigation.AppTopBar
-import com.snap2card.design_system.theme.AppBackground
 import com.snap2card.design_system.theme.Indigo100
 import com.snap2card.design_system.theme.Indigo500
 import com.snap2card.design_system.theme.Spacing
@@ -59,21 +58,25 @@ fun ImportDocumentScreen(
     onNavigateBack: () -> Unit,
     onGenerateCards: (uri: Uri, mimeType: String, name: String) -> Unit,
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     var selectedDocument by remember { mutableStateOf<SelectedDocument?>(null) }
-    val documentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            runCatching {
-                context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    val documentPicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                runCatching {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
+                selectedDocument = SelectedDocument(
+                    uri = uri,
+                    name = FileUtil.getDisplayName(context, uri),
+                    mimeType = FileUtil.getMimeType(context, uri),
+                    sizeBytes = FileUtil.getFileSize(context, uri),
+                )
             }
-            selectedDocument = SelectedDocument(
-                uri = uri,
-                name = FileUtil.getDisplayName(context, uri),
-                mimeType = FileUtil.getMimeType(context, uri),
-                sizeBytes = FileUtil.getFileSize(context, uri),
-            )
         }
-    }
 
     fun chooseFile() {
         documentPicker.launch(arrayOf("application/pdf", "image/*"))
@@ -127,9 +130,18 @@ fun ImportDocumentScreen(
 @Composable
 private fun ImportEmptyState(onChooseFile: () -> Unit) {
     Spacer(Modifier.size(Spacing.xxl))
-    Surface(modifier = Modifier.size(88.dp), shape = MaterialTheme.shapes.extraLarge, color = Indigo100) {
+    Surface(
+        modifier = Modifier.size(88.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = Indigo100
+    ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(Icons.Default.UploadFile, contentDescription = null, tint = Indigo500, modifier = Modifier.size(42.dp))
+            Icon(
+                Icons.Default.UploadFile,
+                contentDescription = null,
+                tint = Indigo500,
+                modifier = Modifier.size(42.dp)
+            )
         }
     }
     Text(
@@ -167,9 +179,17 @@ private fun SelectedDocumentState(
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(modifier = Modifier.size(52.dp), shape = MaterialTheme.shapes.large, color = Indigo100) {
+                Surface(
+                    modifier = Modifier.size(52.dp),
+                    shape = MaterialTheme.shapes.large,
+                    color = Indigo100
+                ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.AutoMirrored.Filled.InsertDriveFile, contentDescription = null, tint = Indigo500)
+                        Icon(
+                            Icons.AutoMirrored.Filled.InsertDriveFile,
+                            contentDescription = null,
+                            tint = Indigo500
+                        )
                     }
                 }
                 Column(
@@ -196,7 +216,11 @@ private fun SelectedDocumentState(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
             ) {
-                SecondaryButton(text = "Replace", onClick = onReplace, modifier = Modifier.weight(1f))
+                SecondaryButton(
+                    text = "Replace",
+                    onClick = onReplace,
+                    modifier = Modifier.weight(1f)
+                )
                 SecondaryButton(text = "Remove", onClick = onRemove, modifier = Modifier.weight(1f))
             }
         }

@@ -19,24 +19,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.snap2card.core.debug.SeedDebugData
 import com.snap2card.core.debug.SeedDebugViewModel
 import com.snap2card.design_system.components.navigation.AppBottomNav
 import com.snap2card.feature.account.presentation.AccountScreen
 import com.snap2card.feature.auth.presentation.login.LoginScreen
 import com.snap2card.feature.auth.presentation.splash.SplashScreen
-import com.snap2card.feature.card_generation.presentation.CardGenerationInputScreen
-import com.snap2card.feature.card_generation.presentation.GeneratedCardsScreen
-import com.snap2card.feature.deck.presentation.create.CameraInputScreen
+import com.snap2card.feature.snap2card.presentation.review.CardGenerationInputScreen
+import com.snap2card.feature.snap2card.presentation.capture.CameraInputScreen
 import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
-import com.snap2card.feature.deck.presentation.create.ImportDocumentScreen
-import com.snap2card.feature.deck.presentation.create.ManualCardEditorScreen
+import com.snap2card.feature.snap2card.presentation.capture.ImportDocumentScreen
+import com.snap2card.feature.snap2card.presentation.capture.ManualCardEditorScreen
 import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
 import com.snap2card.feature.history.presentation.HistoryScreen
 import com.snap2card.feature.home.presentation.HomeScreen
 import com.snap2card.feature.settings.presentation.SettingsScreen
-import com.snap2card.feature.snap2card.presentation.capture.Snap2CardScreen
 import com.snap2card.feature.study.presentation.StudyScreen
 import kotlinx.coroutines.launch
 
@@ -107,16 +104,13 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.DeckList.route) {
         DeckListScreen(
             onDeckClick = { deckId -> navController.navigate(Screen.DeckDetail.createRoute(deckId)) },
-            onCreateDeck = { navController.navigate(Screen.CreateDeck.route) },
-        )
-    }
-    composable(Screen.CreateDeck.route) {
-        CreateDeckScreen(
-            onDeckCreated = { deckId -> navController.navigate(Screen.DeckDetail.createRoute(deckId)) { popUpTo(Screen.CreateDeck.route) { inclusive = true } } },
-            onScanWithCamera = { navController.navigate(Screen.CreateDeckCamera.route) },
-            onImportDocument = { navController.navigate(Screen.CreateDeckDocument.route) },
-            onAddCardsManually = { navController.navigate(Screen.CreateDeckManual.route) },
-            onNavigateBack = { navController.popBackStack() },
+            onCreateDeck = {
+                navController.navigate(Screen.Snap2Card.route) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
         )
     }
     composable(Screen.CreateDeckCamera.route) {
@@ -172,12 +166,12 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
         )
     }
     composable(Screen.Snap2Card.route) {
-        Snap2CardScreen(onCardsGenerated = { jobId -> navController.navigate(Screen.GeneratedCards.createRoute(jobId)) })
-    }
-    composable(Screen.GeneratedCards.route) {
-        GeneratedCardsScreen(
+        CreateDeckScreen(
+            onDeckCreated = { deckId -> navController.navigate(Screen.DeckDetail.createRoute(deckId)) },
+            onScanWithCamera = { navController.navigate(Screen.CreateDeckCamera.route) },
+            onImportDocument = { navController.navigate(Screen.CreateDeckDocument.route) },
+            onAddCardsManually = { navController.navigate(Screen.CreateDeckManual.route) },
             onNavigateBack = { navController.popBackStack() },
-            onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
         )
     }
     composable(Screen.CardGenerationInput.route) {

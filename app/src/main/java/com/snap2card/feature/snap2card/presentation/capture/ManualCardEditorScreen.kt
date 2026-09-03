@@ -1,4 +1,4 @@
-package com.snap2card.feature.deck.presentation.create
+package com.snap2card.feature.snap2card.presentation.capture
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,10 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.snap2card.design_system.components.buttons.PrimaryButton
 import com.snap2card.design_system.components.navigation.AppTopBar
-import com.snap2card.design_system.theme.AppBackground
 import com.snap2card.design_system.theme.Indigo100
 import com.snap2card.design_system.theme.Indigo500
-import com.snap2card.design_system.theme.InputBackground
 import com.snap2card.design_system.theme.Spacing
 import com.snap2card.feature.deck.presentation.editor.DeckEditorCardInput
 
@@ -105,7 +103,11 @@ fun ManualCardEditorScreen(
                     shape = MaterialTheme.shapes.extraLarge,
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Indigo500),
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
                     Text("Add another card", modifier = Modifier.padding(start = Spacing.xs))
                 }
             }
@@ -166,7 +168,11 @@ private fun ManualFlashcardEditor(
                 }
             }
 
-            Text("Front", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Front",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold
+            )
             ManualTextField(
                 value = card.front,
                 onValueChange = onFrontChange,
@@ -176,7 +182,11 @@ private fun ManualFlashcardEditor(
                 isError = showValidation && card.front.isBlank(),
             )
 
-            Text("Back", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Back",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold
+            )
             ManualTextField(
                 value = card.back,
                 onValueChange = onBackChange,
