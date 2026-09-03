@@ -11,6 +11,8 @@ import com.snap2card.core.navigation.NavGraph
 import com.snap2card.design_system.theme.Snap2CardTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+
 /**
  * Single activity — hosts the Compose NavHost.
  * All navigation happens inside the Compose graph; no fragment transactions.
@@ -20,6 +22,7 @@ class MainActivity : ComponentActivity() {
     private val themeViewModel: AppThemeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {

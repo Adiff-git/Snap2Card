@@ -56,51 +56,18 @@ fun SplashScreen(
     }
 
     // ── UI ──────────────────────────────────────────────────────────────
+    // Matches the Android Splash Screen API look for seamless transition
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(SplashGradientStart, SplashGradientEnd)
-                )
-            ),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            // Logo card — white rounded square with camera/card icon
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .shadow(8.dp, RoundedCornerShape(24.dp))
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(White),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.CameraAlt,
-                    contentDescription = "Snap2Card logo",
-                    modifier = Modifier.size(48.dp),
-                    tint = Indigo500,
-                )
-            }
-
-            Spacer(Modifier.height(Spacing.lg))
-
-            // App name
-            Text(
-                text = "Snap2Card",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Indigo500,
-                ),
-            )
-
-            Spacer(Modifier.height(Spacing.lg))
-
-            // Animated loading dots
+            // Keep the animated loading dots to show progress if the API check is slow
             AnimatedLoadingDots()
         }
     }

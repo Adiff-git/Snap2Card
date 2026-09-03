@@ -75,27 +75,39 @@ fun LoginScreen(
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = Spacing.lg)
-            .padding(top = Spacing.xxxl, bottom = Spacing.xl),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+
+    androidx.compose.animation.AnimatedVisibility(
+        visible = isVisible,
+        enter = androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(500)) + 
+                androidx.compose.animation.slideInVertically(
+                    initialOffsetY = { 100 },
+                    animationSpec = androidx.compose.animation.core.tween(500)
+                )
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = Spacing.lg)
+                .padding(top = Spacing.xxxl, bottom = Spacing.xl),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
         // ── Illustration area ──────────────────────────────────────────
         Box(
             modifier = Modifier
-                .size(120.dp)
+                .size(140.dp)
                 .clip(RoundedCornerShape(28.dp))
-                .background(Indigo100),
+                .background(Indigo50),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                imageVector = Icons.Outlined.CameraAlt,
-                contentDescription = null,
-                modifier = Modifier.size(56.dp),
-                tint = Indigo500,
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(id = com.snap2card.R.drawable.ic_logo),
+                contentDescription = "Snap2Card Logo",
+                modifier = Modifier.size(100.dp),
             )
         }
 
@@ -223,6 +235,7 @@ fun LoginScreen(
                 )
             }
         }
+    }
     }
 }
 

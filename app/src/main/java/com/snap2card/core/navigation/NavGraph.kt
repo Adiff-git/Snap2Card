@@ -62,6 +62,10 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
             navController = navController,
             startDestination = Screen.Splash.route,
             modifier = Modifier.padding(innerPadding),
+            enterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300)) },
+            exitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300)) },
+            popEnterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300)) },
+            popExitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300)) }
         ) {
             authNavGraph(navController)
             mainNavGraph(navController)
