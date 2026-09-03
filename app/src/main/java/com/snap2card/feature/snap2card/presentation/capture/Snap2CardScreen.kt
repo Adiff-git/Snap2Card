@@ -12,14 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.snap2card.core.util.FileUtil
 import com.snap2card.design_system.components.buttons.PrimaryButton
 import com.snap2card.design_system.components.buttons.SecondaryButton
 import com.snap2card.design_system.components.feedback.LoadingIndicator
 import com.snap2card.design_system.components.navigation.AppTopBar
 import com.snap2card.design_system.theme.Spacing
-import java.io.File
 
 @Composable
 fun Snap2CardScreen(
@@ -36,9 +35,10 @@ fun Snap2CardScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let {
-            val mimeType = context.contentResolver.getType(it) ?: "image/*"
-            viewModel.onImageSelected(it, mimeType)
+        if (uri == null) {
+            viewModel.onInputCancelled()
+        } else {
+            viewModel.onImageSelected(uri)
         }
     }
 
@@ -47,7 +47,9 @@ fun Snap2CardScreen(
         contract = ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
         if (success) {
-            pendingCameraUri?.let { viewModel.onImageSelected(it, "image/jpeg") }
+            pendingCameraUri?.let { viewModel.onImageSelected(it) } ?: viewModel.onInputUnavailable()
+        } else {
+            viewModel.onInputCancelled()
         }
     }
 
@@ -56,11 +58,12 @@ fun Snap2CardScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
-            val uri = createImageUri(context)
+            val uri = FileUtil.createTempImageUri(context)
             pendingCameraUri = uri
             cameraLauncher.launch(uri)
+        } else {
+            viewModel.onCameraPermissionDenied()
         }
-        // TODO: if !granted, show a rationale/snackbar — permission denied
     }
 
     fun launchCamera() {
@@ -69,7 +72,7 @@ fun Snap2CardScreen(
         ) == PackageManager.PERMISSION_GRANTED
 
         if (hasPermission) {
-            val uri = createImageUri(context)
+            val uri = FileUtil.createTempImageUri(context)
             pendingCameraUri = uri
             cameraLauncher.launch(uri)
         } else {
@@ -78,8 +81,9 @@ fun Snap2CardScreen(
     }
 
     LaunchedEffect(uiState) {
-        if (uiState is Snap2CardUiState.Success) {
-            onCardsGenerated("local")
+        val state = uiState
+        if (state is Snap2CardUiState.Success) {
+            onCardsGenerated(state.jobId)
         }
     }
 
@@ -90,8 +94,8 @@ fun Snap2CardScreen(
                     onCameraClick = { launchCamera() },
                     onUploadClick = { galleryLauncher.launch("image/*") },
                 )
-                is Snap2CardUiState.Uploading -> LoadingIndicator(message = "Uploading…")
-                is Snap2CardUiState.Processing -> LoadingIndicator(message = "AI is generating cards…")
+                is Snap2CardUiState.ExtractingText -> LoadingIndicator(message = "Scanning document...")
+                is Snap2CardUiState.GeneratingCards -> LoadingIndicator(message = "Generating cards...")
                 is Snap2CardUiState.Success -> LoadingIndicator(message = "Done! Opening results…")
                 is Snap2CardUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text((uiState as Snap2CardUiState.Error).message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
@@ -109,16 +113,6 @@ private fun IdleContent(onCameraClick: () -> Unit, onUploadClick: () -> Unit) {
         Text("Create cards from an image or document", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
         Spacer(Modifier.height(Spacing.md))
         PrimaryButton("📷  Scan from Camera", onClick = onCameraClick)
-        SecondaryButton("📄  Upload Document", onClick = onUploadClick)
+        SecondaryButton("📄  Select Image", onClick = onUploadClick)
     }
-}
-
-/** Creates a content:// Uri (via FileProvider) that the camera app can write a photo into. */
-private fun createImageUri(context: android.content.Context): Uri {
-    val imageFile = File.createTempFile(
-        "capture_${System.currentTimeMillis()}", ".jpg", context.cacheDir
-    )
-    return FileProvider.getUriForFile(
-        context, "${context.packageName}.fileprovider", imageFile
-    )
 }

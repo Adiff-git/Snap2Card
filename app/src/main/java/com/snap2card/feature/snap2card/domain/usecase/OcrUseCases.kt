@@ -1,6 +1,7 @@
 package com.snap2card.feature.snap2card.domain.usecase
 
 import android.net.Uri
+import com.snap2card.feature.card_generation.domain.model.GeneratedVocabularyCard
 import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.repository.DeckRepository
 import com.snap2card.feature.snap2card.domain.model.GeneratedCard
@@ -10,8 +11,8 @@ import javax.inject.Inject
 class UploadImageForOcrUseCase @Inject constructor(
     private val ocrRepository: OcrRepository
 ) {
-    suspend operator fun invoke(uri: Uri, mimeType: String): Result<List<GeneratedCard>> =
-        ocrRepository.uploadAndProcess(uri, mimeType)
+    suspend operator fun invoke(uri: Uri, mimeType: String): Result<List<GeneratedVocabularyCard>> =
+        ocrRepository.generateCards(uri, mimeType)
 }
 
 class SaveGeneratedCardsUseCase @Inject constructor(

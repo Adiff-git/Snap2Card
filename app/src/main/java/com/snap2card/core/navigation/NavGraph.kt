@@ -158,7 +158,11 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
     composable(Screen.CardGenerationInput.route) {
         CardGenerationInputScreen(
             onNavigateBack = { navController.popBackStack() },
-            onCardsSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+            onCardsGenerated = { jobId ->
+                navController.navigate(Screen.GeneratedCards.createRoute(jobId)) {
+                    popUpTo(Screen.CardGenerationInput.route) { inclusive = true }
+                }
+            },
         )
     }
     composable(Screen.Study.route) { backStackEntry ->
