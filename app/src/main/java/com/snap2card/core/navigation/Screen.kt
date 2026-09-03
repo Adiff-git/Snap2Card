@@ -1,5 +1,7 @@
 package com.snap2card.core.navigation
 
+import android.net.Uri
+
 /**
  * All navigation routes in one place.
  * Only string routes are used — no Parcelable/Serializable objects cross nav boundaries.
@@ -30,6 +32,18 @@ sealed class Screen(val route: String) {
     }
     data object GeneratedCards : Screen("generated_cards/{jobId}") {
         fun createRoute(jobId: String) = "generated_cards/$jobId"
+    }
+    data object CreateDeckCamera : Screen("create_deck/camera")
+    data object CreateDeckDocument : Screen("create_deck/document")
+    data object CreateDeckManual : Screen("create_deck/manual")
+    data object CardGenerationInput : Screen(
+        "card_generation_input/{sourceType}?uri={uri}&mimeType={mimeType}&name={name}"
+    ) {
+        fun createRoute(sourceType: String, uri: String, mimeType: String, name: String? = null): String =
+            "card_generation_input/${Uri.encode(sourceType)}" +
+                "?uri=${Uri.encode(uri)}" +
+                "&mimeType=${Uri.encode(mimeType)}" +
+                "&name=${Uri.encode(name.orEmpty())}"
     }
     data object Study : Screen("study/{deckId}") {
         fun createRoute(deckId: String) = "study/$deckId"

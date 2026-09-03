@@ -15,18 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,13 +40,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.snap2card.design_system.components.buttons.PrimaryButton
 import com.snap2card.design_system.theme.AppBackground
-import com.snap2card.design_system.theme.BiologyTagBackground
 import com.snap2card.design_system.theme.Indigo100
 import com.snap2card.design_system.theme.Indigo500
 import com.snap2card.design_system.theme.InputBackground
@@ -64,9 +57,15 @@ data class DeckEditorCardInput(
     val back: String = "",
 )
 
+data class DeckEditorResult(
+    val deckName: String,
+    val tag: String,
+    val cards: List<DeckEditorCardInput>,
+)
+
 @Composable
 fun DeckEditorScaffold(
-    topBarTitle: String = "Snap2Card",
+    topBarTitle: String = "Review & Edit",
     title: String,
     subtitle: String,
     titleTag: String? = null,
@@ -75,29 +74,48 @@ fun DeckEditorScaffold(
     initialTag: String = "Medical",
     initialCards: List<DeckEditorCardInput> = listOf(DeckEditorCardInput()),
     showDeckInfo: Boolean = true,
-    showSourceOptions: Boolean = true,
+    cardsSectionTitle: String? = "Cards",
+    addCardText: String = "Add Empty Card",
+    validateBeforeSave: Boolean = false,
+    validationMessage: String = "Fill in front and back for every card to save.",
+    saveTextForCount: ((Int) -> String)? = null,
+    subtitleForCount: ((Int) -> String)? = null,
     secondaryActionText: String? = null,
     onSecondaryAction: () -> Unit = {},
     onNavigateBack: () -> Unit,
-    onSave: () -> Unit,
+    onSave: (DeckEditorResult) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var deckName by remember { mutableStateOf(initialDeckName) }
     var tag by remember { mutableStateOf(initialTag) }
     val cards = remember { mutableStateListOf(*initialCards.toTypedArray()) }
+    val cardsAreValid = cards.isNotEmpty() && cards.all { it.front.isNotBlank() && it.back.isNotBlank() }
+    val effectiveSaveText = saveTextForCount?.invoke(cards.size) ?: saveText
+    val effectiveSubtitle = subtitleForCount?.invoke(cards.size) ?: subtitle
 
     Scaffold(
         modifier = modifier,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             DeckEditorTopBar(title = topBarTitle, onNavigateBack = onNavigateBack)
         },
         bottomBar = {
             DeckEditorBottomBar(
-                saveText = saveText,
+                saveText = effectiveSaveText,
                 secondaryActionText = secondaryActionText,
                 onSecondaryAction = onSecondaryAction,
-                onSave = onSave,
+                saveEnabled = !validateBeforeSave || cardsAreValid,
+                onSave = {
+                    if (!validateBeforeSave || cardsAreValid) {
+                        onSave(
+                            DeckEditorResult(
+                                deckName = deckName,
+                                tag = tag,
+                                cards = cards.toList(),
+                            )
+                        )
+                    }
+                },
             )
         },
     ) { padding ->
@@ -105,7 +123,7 @@ fun DeckEditorScaffold(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.surface),
             contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
@@ -128,9 +146,9 @@ fun DeckEditorScaffold(
                         }
                     }
                 }
-                if (subtitle.isNotBlank()) {
+                if (effectiveSubtitle.isNotBlank()) {
                     Text(
-                        subtitle,
+                        effectiveSubtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = Spacing.xs),
@@ -147,35 +165,17 @@ fun DeckEditorScaffold(
                     )
                 }
             }
-            if (showSourceOptions) {
+            if (cardsSectionTitle != null) {
                 item {
-                    DeckSourceCard(
-                        icon = { Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White) },
-                        title = "Scan from Camera",
-                        subtitle = "Instantly turn notes or books into flashcards.",
-                        iconBackground = Indigo500,
-                    )
+                    Text(cardsSectionTitle, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
-                item {
-                    DeckSourceCard(
-                        icon = { Icon(Icons.Default.UploadFile, contentDescription = null, tint = Indigo500) },
-                        title = "Upload Document",
-                        subtitle = "Import PDFs or images from your device.",
-                        iconBackground = BiologyTagBackground,
-                    )
-                }
-                item {
-                    DividerWithText("OR")
-                }
-            }
-            item {
-                Text("Manual Entry", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             }
             itemsIndexed(cards) { index, card ->
                 ManualCardEditor(
                     index = index,
                     card = card,
                     canDelete = cards.size > 1,
+                    showValidation = validateBeforeSave,
                     onFrontChange = { cards[index] = card.copy(front = it) },
                     onBackChange = { cards[index] = card.copy(back = it) },
                     onDelete = { cards.removeAt(index) },
@@ -189,7 +189,16 @@ fun DeckEditorScaffold(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Indigo500),
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Add Empty Card", modifier = Modifier.padding(start = Spacing.xs))
+                    Text(addCardText, modifier = Modifier.padding(start = Spacing.xs))
+                }
+            }
+            if (validateBeforeSave && !cardsAreValid) {
+                item {
+                    Text(
+                        text = validationMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -202,12 +211,12 @@ private fun DeckEditorTopBar(title: String, onNavigateBack: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(AppBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onNavigateBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
         Text(
             text = title,
@@ -216,9 +225,6 @@ private fun DeckEditorTopBar(title: String, onNavigateBack: () -> Unit) {
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
         )
-        IconButton(onClick = { }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "More")
-        }
     }
 }
 
@@ -232,7 +238,7 @@ private fun DeckNameCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
@@ -252,7 +258,7 @@ private fun DeckNameCard(
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
                     modifier = Modifier
                         .height(28.dp)
-                        .background(InputBackground, MaterialTheme.shapes.extraLarge),
+                        .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.extraLarge),
                 ) {
                     Text("+ Add Tag", style = MaterialTheme.typography.labelSmall)
                 }
@@ -272,71 +278,11 @@ private fun DeckNameCard(
 }
 
 @Composable
-private fun DeckSourceCard(
-    icon: @Composable () -> Unit,
-    title: String,
-    subtitle: String,
-    iconBackground: Color,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(160.dp),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(Spacing.lg),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .shadow(18.dp, MaterialTheme.shapes.extraLarge)
-                    .background(iconBackground, MaterialTheme.shapes.extraLarge),
-                contentAlignment = Alignment.Center,
-            ) {
-                icon()
-            }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(top = Spacing.md),
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = Spacing.xs),
-            )
-        }
-    }
-}
-
-@Composable
-private fun DividerWithText(text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        HorizontalDivider(modifier = Modifier.weight(1f), color = DividerDefaults.color.copy(alpha = 0.6f))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = Spacing.md),
-        )
-        HorizontalDivider(modifier = Modifier.weight(1f), color = DividerDefaults.color.copy(alpha = 0.6f))
-    }
-}
-
-@Composable
 private fun ManualCardEditor(
     index: Int,
     card: DeckEditorCardInput,
     canDelete: Boolean,
+    showValidation: Boolean,
     onFrontChange: (String) -> Unit,
     onBackChange: (String) -> Unit,
     onDelete: () -> Unit,
@@ -344,7 +290,7 @@ private fun ManualCardEditor(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
@@ -368,6 +314,7 @@ private fun ManualCardEditor(
                 onValueChange = onFrontChange,
                 placeholder = "Enter term or question...",
                 minHeight = 72.dp,
+                isError = showValidation && card.front.isBlank(),
             )
             Text("Back (Definition)", style = MaterialTheme.typography.labelSmall)
             FlatTextField(
@@ -375,6 +322,7 @@ private fun ManualCardEditor(
                 onValueChange = onBackChange,
                 placeholder = "Enter definition or answer...",
                 minHeight = 96.dp,
+                isError = showValidation && card.back.isBlank(),
             )
         }
     }
@@ -387,6 +335,7 @@ private fun FlatTextField(
     placeholder: String,
     singleLine: Boolean = false,
     minHeight: androidx.compose.ui.unit.Dp = 54.dp,
+    isError: Boolean = false,
 ) {
     TextField(
         value = value,
@@ -396,13 +345,16 @@ private fun FlatTextField(
             .height(minHeight),
         placeholder = { Text(placeholder, style = MaterialTheme.typography.bodySmall) },
         singleLine = singleLine,
+        isError = isError,
         shape = MaterialTheme.shapes.small,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = InputBackground,
-            unfocusedContainerColor = InputBackground,
-            disabledContainerColor = InputBackground,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
+            errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            errorIndicatorColor = MaterialTheme.colorScheme.error,
         ),
     )
 }
@@ -412,9 +364,10 @@ private fun DeckEditorBottomBar(
     saveText: String,
     secondaryActionText: String?,
     onSecondaryAction: () -> Unit,
+    saveEnabled: Boolean,
     onSave: () -> Unit,
 ) {
-    Surface(color = Color.White, shadowElevation = 8.dp) {
+    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -434,12 +387,14 @@ private fun DeckEditorBottomBar(
                 PrimaryButton(
                     text = saveText,
                     onClick = onSave,
+                    enabled = saveEnabled,
                     modifier = Modifier.weight(1.45f),
                 )
             } else {
                 PrimaryButton(
                     text = saveText,
                     onClick = onSave,
+                    enabled = saveEnabled,
                     modifier = Modifier.fillMaxWidth(0.72f),
                 )
             }

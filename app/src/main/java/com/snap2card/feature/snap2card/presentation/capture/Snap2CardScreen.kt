@@ -83,21 +83,19 @@ fun Snap2CardScreen(
         }
     }
 
-    Scaffold(topBar = { AppTopBar(title = "Snap2Card") }) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
-            when (uiState) {
-                is Snap2CardUiState.Idle -> IdleContent(
-                    onCameraClick = { launchCamera() },
-                    onUploadClick = { galleryLauncher.launch("image/*") },
-                )
-                is Snap2CardUiState.Uploading -> LoadingIndicator(message = "Uploading…")
-                is Snap2CardUiState.Processing -> LoadingIndicator(message = "AI is generating cards…")
-                is Snap2CardUiState.Success -> LoadingIndicator(message = "Done! Opening results…")
-                is Snap2CardUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text((uiState as Snap2CardUiState.Error).message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(Spacing.md))
-                    PrimaryButton("Try Again", onClick = viewModel::reset)
-                }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        when (uiState) {
+            is Snap2CardUiState.Idle -> IdleContent(
+                onCameraClick = { launchCamera() },
+                onUploadClick = { galleryLauncher.launch("image/*") },
+            )
+            is Snap2CardUiState.Uploading -> LoadingIndicator(message = "Uploading…")
+            is Snap2CardUiState.Processing -> LoadingIndicator(message = "AI is generating cards…")
+            is Snap2CardUiState.Success -> LoadingIndicator(message = "Done! Opening results…")
+            is Snap2CardUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text((uiState as Snap2CardUiState.Error).message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(Spacing.md))
+                PrimaryButton("Try Again", onClick = viewModel::reset)
             }
         }
     }

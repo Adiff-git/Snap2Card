@@ -30,4 +30,8 @@ object ApiServiceModule {
     @Provides @Singleton
     fun provideOcrApiService(retrofit: Retrofit): OcrApiService =
         retrofit.create(OcrApiService::class.java)
+
+    @Provides @Singleton
+    fun provideAccountApiService(retrofit: Retrofit): com.snap2card.feature.account.data.remote.AccountApiService =
+        retrofit.create(com.snap2card.feature.account.data.remote.AccountApiService::class.java)
 }

@@ -20,8 +20,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val userPreferencesDataStore: UserPreferencesDataStore,
 ) : AuthRepository {
 
-    private val _currentUser = MutableStateFlow<User?>(null)
-    override val currentUser: Flow<User?> = _currentUser.asStateFlow()
+    override val currentUser: Flow<User?> = userPreferencesDataStore.currentUser
 
     override suspend fun loginWithEmail(email: String, password: String): Result<String> = runCatching {
         val response = authApiService.login(LoginRequest(email, password))
@@ -32,6 +31,8 @@ class AuthRepositoryImpl @Inject constructor(
             accessToken = token,
             refreshToken = token,
             userId = email,
+            email = email,
+            displayName = email.substringBefore("@")
         )
         token
     }
@@ -39,14 +40,19 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signInWithGoogle(idToken: String): Result<User> = runCatching {
         val response = authApiService.signInWithGoogle(GoogleAuthRequest(idToken))
         val user = response.toDomain()
-        userPreferencesDataStore.saveSession(response.accessToken, response.refreshToken, response.userId)
-        _currentUser.value = user
+        userPreferencesDataStore.saveSession(
+            accessToken = response.accessToken, 
+            refreshToken = response.refreshToken, 
+            userId = response.userId,
+            email = response.email,
+            displayName = response.displayName,
+            photoUrl = response.photoUrl
+        )
         user
     }
 
     override suspend fun signOut() {
         userPreferencesDataStore.clearSession()
-        _currentUser.value = null
     }
 
     override suspend fun isSessionValid(): Boolean {
