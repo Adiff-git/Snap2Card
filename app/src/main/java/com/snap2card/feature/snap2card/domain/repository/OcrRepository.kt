@@ -2,36 +2,33 @@ package com.snap2card.feature.snap2card.domain.repository
 
 import android.net.Uri
 import com.snap2card.feature.snap2card.domain.model.GeneratedCard
-import com.snap2card.feature.snap2card.domain.repository.OcrRepository
-import kotlinx.coroutines.delay
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
- * OCR repository interface.
- * Hides all backend details — Android has no knowledge of OCR/AI implementation.
- * The network call, multipart encoding, and DTO mapping happen in the implementation.
+ * Domain contract for turning a captured image/document into a flashcard.
+ *
+ * IMPORTANT: this is a two-step contract, matching the real API
+ * (card-create.md + card-retrieve.md) — there is no single synchronous
+ * "give me the generated card" call. POST /cards returns only an id;
+ * the generated frontSide/backSide must be fetched separately.
  */
 interface OcrRepository {
-    /**
-     * Upload an image/document URI and receive generated flashcards.
-     * @param uri     Content URI from camera or file picker
-     * @param mimeType MIME type of the file
-     */
-    suspend fun uploadAndProcess(uri: Uri, mimeType: String): Result<List<GeneratedCard>>
-}
 
-@Singleton
-class FakeOcrRepositoryImpl @Inject constructor() : OcrRepository {
-    override suspend fun uploadAndProcess(uri: Uri, mimeType: String): Result<List<GeneratedCard>> {
-        delay(1500) // simulate network + AI processing time
-        return Result.success(
-            listOf(
-                GeneratedCard(front = "Mitochondria", back = "The powerhouse of the cell"),
-                GeneratedCard(front = "Photosynthesis", back = "Process by which plants convert light into energy"),
-                GeneratedCard(front = "Osmosis", back = "Movement of water across a semi-permeable membrane"),
-            )
-        )
-    }
+    /**
+     * Submits an image for card generation.
+     * Maps to POST /cards with type = "image".
+     * Returns the created card's id on success.
+     */
+    suspend fun submitImage(uri: Uri, mimeType: String, name: String): Result<String>
+
+    /**
+     * Submits raw extracted/pasted text for card generation.
+     * Maps to POST /cards with type = "document".
+     */
+    suspend fun submitDocument(text: String, name: String): Result<String>
+
+    /**
+     * Fetches a single generated card by id.
+     * Maps to GET /cards?ids=<id>.
+     */
+    suspend fun getGeneratedCard(cardId: String): Result<GeneratedCard>
 }
-// For demo purposes

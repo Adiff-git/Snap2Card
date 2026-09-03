@@ -87,19 +87,12 @@ class CardGenerationInputViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.value = CardGenerationInputUiState.Loading(generationSource)
-            uploadImageForOcrUseCase(generationSource.uri, generationSource.mimeType)
-                .onSuccess { generatedCards ->
-                    val cards = generatedCards.map { generated ->
+            uploadImageForOcrUseCase(generationSource.uri, generationSource.mimeType, generationSource.displayName)
+                .onSuccess { generated ->
+                    val cards = listOf(
                         DeckEditorCardInput(front = generated.front, back = generated.back)
-                    }
-                    if (cards.isEmpty()) {
-                        _uiState.value = CardGenerationInputUiState.Error(
-                            source = generationSource,
-                            message = "No cards were generated from this source.",
-                        )
-                    } else {
-                        _uiState.value = CardGenerationInputUiState.Success(generationSource, cards)
-                    }
+                    )
+                    _uiState.value = CardGenerationInputUiState.Success(generationSource, cards)
                 }
                 .onFailure { error ->
                     _uiState.value = CardGenerationInputUiState.Error(
