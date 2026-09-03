@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -116,49 +117,47 @@ fun AppBottomNav(navController: NavController) {
                         }
                     } else {
                         // Normal item
-                        val backgroundColor by animateColorAsState(
-                            targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                            animationSpec = tween(durationMillis = 300),
-                            label = "nav_bg_color"
-                        )
                         val contentColor by animateColorAsState(
                             targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             animationSpec = tween(durationMillis = 300),
                             label = "nav_content_color"
                         )
-                        val iconSize by animateDpAsState(
-                            targetValue = if (isSelected) 22.dp else 24.dp,
-                            label = "nav_icon_size"
-                        )
 
-                        Row(
+                        Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(percent = 50))
-                                .background(backgroundColor)
+                                .size(48.dp)
+                                .clip(CircleShape)
                                 .clickable {
                                     navController.navigate(item.screen.route) {
                                         popUpTo(navController.graph.startDestinationId) { saveState = true }
                                         launchSingleTop = true
                                         restoreState = true
                                     }
-                                }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                                },
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.label,
-                                tint = contentColor,
-                                modifier = Modifier.size(iconSize)
-                            )
-                            if (isSelected) {
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = item.label,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = contentColor,
-                                    fontWeight = FontWeight.Bold
+                            androidx.compose.foundation.layout.Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.label,
+                                    tint = contentColor,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                // Indicator dot
+                                val dotColor by animateColorAsState(
+                                    targetValue = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                    animationSpec = tween(durationMillis = 300),
+                                    label = "nav_dot_color"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(4.dp)
+                                        .clip(CircleShape)
+                                        .background(dotColor)
                                 )
                             }
                         }
