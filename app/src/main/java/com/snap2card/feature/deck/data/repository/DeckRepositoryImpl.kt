@@ -17,6 +17,7 @@ import com.snap2card.feature.deck.data.remote.dto.CategoryRetrieveRequest
 import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.model.Deck
 import com.snap2card.feature.deck.domain.repository.DeckRepository
+import com.snap2card.feature.snap2card.data.remote.dto.CardEditRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -47,12 +48,12 @@ class DeckRepositoryImpl @Inject constructor(
     private fun localDecks(): Flow<List<Deck>> =
         deckDao.getAllDecks().map { entities -> entities.map { it.toDomain() } }
 
+    private suspend fun fetchCategory(deckId: String) = deckApiService.getCategory(deckId).data
+
     override suspend fun getDeckById(deckId: String): Deck? = try {
-        val deck = deckApiService.getCategory(deckId).data.toDeck(deckId)
-        deckDao.insertDeck(deck.toEntity(userId = ""))
-        deck
-    } catch (error: Exception) {
-        if (error is CancellationException) throw error
+        fetchCategory(deckId).toDeck(deckId).also { deckDao.insertDeck(it.toEntity(userId = "")) }
+    } catch (e: Exception) {
+        if (e is CancellationException) throw e
         deckDao.getDeckById(deckId)?.toDomain()
     }
 
@@ -63,7 +64,8 @@ class DeckRepositoryImpl @Inject constructor(
             deckApiService.createCategory(CategoryCreateRequest(name = categoryName)).data.categoryId
         } catch (error: Exception) {
             if (error is CancellationException) throw error
-            UUID.randomUUID().toString() // local-only fallback — won't exist server-side until retried
+            android.util.Log.e("DeckRepo", "createCategory failed", error) // temporary — see what's actually throwing
+            UUID.randomUUID().toString()
         }
         val entity = DeckEntity(
             id = deckId,
@@ -85,13 +87,14 @@ class DeckRepositoryImpl @Inject constructor(
 
     override fun getCardsForDeck(deckId: String): Flow<List<Card>> = flow {
         try {
-            val cardIds = deckApiService.getCategory(deckId).data.cardIds
+            val cardIds = fetchCategory(deckId).cardIds
             val cards = if (cardIds.isEmpty()) emptyList()
-            else deckApiService.getCards(CardRetrieveRequest(cardIds)).data.map { it.toDomain(deckId) }
+            else deckApiService.getCards(cardIds).data.map { it.toDomain(deckId) }
             cardDao.insertCards(cards.map { it.toEntity() })
             emit(cards)
         } catch (error: Exception) {
             if (error is CancellationException) throw error
+            android.util.Log.e("DeckRepo", "getCardsForDeck failed for $deckId", error)
             emitAll(localCards(deckId))
         }
     }
@@ -129,7 +132,21 @@ class DeckRepositoryImpl @Inject constructor(
         createdAt = DateUtil.now(),
     ).toDomain()
 
-    override suspend fun updateCard(card: Card) = cardDao.updateCard(card.toEntity())
+    override suspend fun updateCard(card: Card) {
+        try {
+            deckApiService.updateCard(
+                CardEditRequest(
+                    id = card.id,
+                    frontSide = card.front,
+                    backSide = card.back
+                )
+            )
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            android.util.Log.e("DeckRepo", "updateCard remote failed for ${card.id}", error)
+        }
+        cardDao.updateCard(card.toEntity())
+    }
     override suspend fun deleteCard(cardId: String) = cardDao.deleteCard(cardId)
     override suspend fun addCards(cards: List<Card>) = cardDao.insertCards(cards.map { it.toEntity() })
 }

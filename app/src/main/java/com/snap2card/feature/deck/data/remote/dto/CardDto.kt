@@ -72,3 +72,14 @@ data class CategoryCreateResponse(val status: String, val data: CategoryCreateDa
 data class CardCategorizeRequest(val cardId: String, val categoryIds: List<String>)
 @Serializable
 data class CardCategorizeResponse(val status: String)
+
+@Serializable
+data class CardEditResponse(val status: String)
+
+@Serializable
+data class CardEditRequest(
+    val id: String,
+    val frontSide: String,
+    val backSide: String,
+    // val categoryIds: List<String>? = null  — only if card-edit.md confirms this field exists
+)

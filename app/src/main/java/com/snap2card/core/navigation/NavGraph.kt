@@ -136,6 +136,7 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
             deckId = deckId,
             onNavigateBack = { navController.popBackStack() },
             onDeckSaved = { navController.navigate(Screen.DeckList.route) { popUpTo(Screen.DeckList.route) { inclusive = true } } },
+            onStudyClick = { id -> navController.navigate(Screen.Study.createRoute(id)) },
         )
     }
     composable(Screen.EditDeck.route) { backStackEntry ->
@@ -144,6 +145,7 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
             deckId = deckId,
             onNavigateBack = { navController.popBackStack() },
             onDeckSaved = { navController.popBackStack() },
+            onStudyClick = { id -> navController.navigate(Screen.Study.createRoute(id)) },
         )
     }
     composable(Screen.Snap2Card.route) {

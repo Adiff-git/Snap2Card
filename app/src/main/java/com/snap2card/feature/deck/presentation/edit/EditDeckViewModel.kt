@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.model.Deck
+import com.snap2card.feature.deck.domain.usecase.AddCardUseCase
 import com.snap2card.feature.deck.domain.usecase.GetCardsForDeckUseCase
 import com.snap2card.feature.deck.domain.usecase.GetDeckByIdUseCase
+import com.snap2card.feature.deck.domain.usecase.UpdateCardUseCase
+import com.snap2card.feature.deck.presentation.editor.DeckEditorResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +29,8 @@ class EditDeckViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getDeckByIdUseCase: GetDeckByIdUseCase,
     private val getCardsForDeckUseCase: GetCardsForDeckUseCase,
+    private val addCardUseCase: AddCardUseCase,
+    private val updateCardUseCase: UpdateCardUseCase,
 ) : ViewModel() {
 
     private val deckId: String = checkNotNull(savedStateHandle["deckId"])
@@ -56,6 +61,20 @@ class EditDeckViewModel @Inject constructor(
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 _uiState.value = EditDeckUiState.Error(error.message ?: "Failed to load deck")
+            }
+        }
+    }
+
+    fun saveChanges(result: DeckEditorResult) {
+        viewModelScope.launch {
+            val original = (uiState.value as? EditDeckUiState.Success)?.cards ?: emptyList()
+            result.cards.forEachIndexed { i, input ->
+                val existing = original.getOrNull(i)
+                if (existing == null) {
+                    addCardUseCase(deckId, input.front, input.back)      // new card → POST
+                } else if (existing.front != input.front || existing.back != input.back) {
+                    updateCardUseCase(existing.copy(front = input.front, back = input.back))
+                }
             }
         }
     }
