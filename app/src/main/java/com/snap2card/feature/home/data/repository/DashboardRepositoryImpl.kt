@@ -31,7 +31,12 @@ class DashboardRepositoryImpl @Inject constructor(
         val recentDecks = recentResponse.data.map { it.toRecentDeck() }
 
         // 3. Daily learned count
-        val dailyResponse = api.getDailyLearnedCount()
+        val today = java.time.LocalDate.now()
+        val dailyResponse = api.getDailyLearnedCount(
+            year = today.year,
+            month = today.monthValue,
+            day = today.dayOfMonth
+        )
         val dailyCompleted = dailyResponse.data.count
 
         // 4. Monthly learned count → streak

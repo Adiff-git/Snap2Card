@@ -26,7 +26,11 @@ interface DashboardApiService {
 
     /** GET /account/daily-learned-count — cards learned today */
     @GET("account/daily-learned-count")
-    suspend fun getDailyLearnedCount(): DailyLearnedCountResponse
+    suspend fun getDailyLearnedCount(
+        @Query("year") year: Int,
+        @Query("month") month: Int,
+        @Query("day") day: Int
+    ): DailyLearnedCountResponse
 
     /** GET /account/monthly-learned-count — for streak calculation */
     @GET("account/monthly-learned-count")
