@@ -15,9 +15,9 @@ private val isoFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE
 fun RecentCategoryItemDto.toRecentDeck(): RecentDeck = RecentDeck(
     id = categoryId,
     title = name,
-    category = "Deck",                         // backend does not supply a category label here
-    cardCount = 0,                             // not returned by /categories/recent
-    masteryPercent = (mastery ?: 0f) / 100f
+    category = "Deck",                             // backend does not supply a category label here
+    cardCount = 0,                                 // not returned by /categories/recent
+    masteryPercent = ((mastery ?: 0.0) / 100.0).toFloat().coerceIn(0f, 1f)
 )
 
 /**

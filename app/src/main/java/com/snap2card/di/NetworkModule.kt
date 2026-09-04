@@ -8,8 +8,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
@@ -44,6 +46,23 @@ object NetworkModule {
         loggingInterceptor: HttpLoggingInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
+        // Fix HTTP 415: always send Content-Type: application/json
+        // Also ensures POST with no body gets an empty JSON body {}
+        .addInterceptor(Interceptor { chain ->
+            val original = chain.request()
+            val request = original.newBuilder()
+                .header("Content-Type", "application/json")
+                .apply {
+                    // POST/PUT with null body → send empty JSON object
+                    if ((original.method == "POST" || original.method == "PUT")
+                        && original.body == null
+                    ) {
+                        method(original.method, "{}".toRequestBody("application/json".toMediaType()))
+                    }
+                }
+                .build()
+            chain.proceed(request)
+        })
         .addInterceptor(loggingInterceptor)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)   // OCR may take longer
