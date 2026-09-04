@@ -1,7 +1,6 @@
-package com.snap2card.di
-
 import com.snap2card.feature.auth.data.remote.AuthApiService
 import com.snap2card.feature.deck.data.remote.DeckApiService
+import com.snap2card.feature.home.data.remote.DashboardApiService
 import com.snap2card.feature.snap2card.data.remote.OcrApiService
 import dagger.Module
 import dagger.Provides
@@ -34,4 +33,8 @@ object ApiServiceModule {
     @Provides @Singleton
     fun provideAccountApiService(retrofit: Retrofit): com.snap2card.feature.account.data.remote.AccountApiService =
         retrofit.create(com.snap2card.feature.account.data.remote.AccountApiService::class.java)
+
+    @Provides @Singleton
+    fun provideDashboardApiService(retrofit: Retrofit): DashboardApiService =
+        retrofit.create(DashboardApiService::class.java)
 }

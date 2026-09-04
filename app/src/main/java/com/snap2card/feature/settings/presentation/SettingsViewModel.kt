@@ -17,6 +17,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     getSettingsUseCase: GetSettingsUseCase,
     private val updateSettingsUseCase: UpdateSettingsUseCase,
+    private val authRepository: com.snap2card.feature.auth.domain.repository.AuthRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = getSettingsUseCase()
@@ -25,5 +26,9 @@ class SettingsViewModel @Inject constructor(
 
     fun updateSettings(settings: UserSettings) {
         viewModelScope.launch { updateSettingsUseCase(settings) }
+    }
+
+    fun signOut() {
+        viewModelScope.launch { authRepository.signOut() }
     }
 }

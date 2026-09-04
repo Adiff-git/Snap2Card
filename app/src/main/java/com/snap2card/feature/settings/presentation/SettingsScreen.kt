@@ -132,14 +132,17 @@ fun SettingsScreen(
                     Spacer(Modifier.height(Spacing.xl))
                     
                     OutlinedButton(
-                        onClick = onSignOut, 
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = Spacing.md),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text("Log Out", fontWeight = FontWeight.Bold)
-                    }
+    onClick = {
+        viewModel.signOut()
+        onSignOut()
+    },
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = Spacing.md),
+    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+) {
+    Text("Log Out", fontWeight = FontWeight.Bold)
+}
                     
                     Spacer(Modifier.height(Spacing.xxxl))
                     

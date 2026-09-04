@@ -52,6 +52,13 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun signOut() {
+        // Call backend to invalidate session
+        try {
+            authApiService.logout()
+        } catch (e: Exception) {
+            // Log but continue to clear local session
+            println("Logout API error: $e")
+        }
         userPreferencesDataStore.clearSession()
     }
 
