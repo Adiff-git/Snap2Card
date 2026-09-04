@@ -1,7 +1,11 @@
 package com.snap2card.feature.study.data.remote.dto
 
 import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.HTTP
+import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface ExamApiService {
 
@@ -11,11 +15,9 @@ interface ExamApiService {
     @POST("exams/start")
     suspend fun startExam(@Body request: StartExamRequest): ApiResponse<StartExamData>
 
-    // TODO: confirm with backend — GET + body will crash via OkHttp.
-    // If backend confirms query param instead, change to:
-    // @GET("exams/review") suspend fun reviewExam(@Query("examId") examId: String): ApiResponse<ReviewExamData>
-    @POST("exams/review")
-    suspend fun reviewExam(@Body request: ReviewExamRequest): ApiResponse<ReviewExamData>
+    @Headers("Content-Type: application/json")
+    @GET("exams/review")
+    suspend fun reviewExam(@Query("examId") examId: String): ApiResponse<ReviewExamData>
 
     @POST("exams/result")
     suspend fun submitResult(@Body request: ExamResultRequest): StatusOnlyResponse

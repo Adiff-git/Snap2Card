@@ -31,3 +31,7 @@ class AddCardUseCase @Inject constructor(private val repo: DeckRepository) {
     suspend operator fun invoke(deckId: String, front: String, back: String) =
         repo.addCard(deckId, front, back)
 }
+
+class UpdateCardUseCase @Inject constructor(private val repo: DeckRepository) {
+    suspend operator fun invoke(card: Card) = repo.updateCard(card)
+}

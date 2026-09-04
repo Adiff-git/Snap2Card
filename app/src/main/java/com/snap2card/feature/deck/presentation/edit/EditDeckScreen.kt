@@ -15,6 +15,7 @@ fun EditDeckScreen(
     deckId: String,
     onNavigateBack: () -> Unit,
     onDeckSaved: (deckId: String) -> Unit,
+    onStudyClick: (String) -> Unit,
     viewModel: EditDeckViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -35,7 +36,9 @@ fun EditDeckScreen(
             showDeckInfo = false,
             cardsSectionTitle = null,
             onNavigateBack = onNavigateBack,
-            onSave = { _ -> onDeckSaved(deckId) },
+            onSave = { result -> viewModel.saveChanges(result); onDeckSaved(deckId) },
+            secondaryActionText = "Study",
+            onSecondaryAction = { onStudyClick(deckId) },
         )
     }
 }

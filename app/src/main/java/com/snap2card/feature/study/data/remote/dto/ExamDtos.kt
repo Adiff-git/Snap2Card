@@ -14,10 +14,6 @@ data class StartExamRequest(val examId: String)
 // ASSUMPTION: verify with backend — adding nullable examLogId since the doc doesn't show one
 @Serializable
 data class StartExamData(val examLogId: String? = null)
-
-@Serializable
-data class ReviewExamRequest(val examId: String) // ASSUMPTION: may need to become a @Query instead
-
 @Serializable
 data class ReviewExamData(val numOfQuiz: Int, val quizzes: List<QuizDto>)
 
