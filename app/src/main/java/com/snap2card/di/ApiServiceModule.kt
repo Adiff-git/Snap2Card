@@ -1,3 +1,5 @@
+package com.snap2card.di
+
 import com.snap2card.feature.auth.data.remote.AuthApiService
 import com.snap2card.feature.deck.data.remote.DeckApiService
 import com.snap2card.feature.home.data.remote.DashboardApiService
