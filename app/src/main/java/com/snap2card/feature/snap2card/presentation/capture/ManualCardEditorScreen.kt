@@ -52,6 +52,7 @@ fun ManualCardEditorScreen(
     onNavigateBack: () -> Unit,
     onCardsSaved: () -> Unit,
     viewModel: ManualCardEditorViewModel = hiltViewModel(),
+    deckId: String,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -69,9 +70,7 @@ fun ManualCardEditorScreen(
                 saveText = uiState.saveText,
                 enabled = uiState.isValid,
                 onSave = {
-                    if (viewModel.save()) {
-                        onCardsSaved()
-                    }
+                    viewModel.save(onSaved = onCardsSaved)
                 },
             )
         },

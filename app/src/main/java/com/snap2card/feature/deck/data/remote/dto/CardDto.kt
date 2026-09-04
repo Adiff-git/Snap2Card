@@ -4,6 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class CardDto(val id: String, val frontSide: String, val backSide: String)
+
+@Serializable
 data class CardListResponse(
     @SerialName("status") val status: String? = null,
     @SerialName("data") val data: CardListData,
@@ -23,13 +26,12 @@ data class CardListItemDto(
 
 @Serializable
 data class CardRetrieveRequest(
-    @SerialName("ids") val ids: List<String>,
+    val ids: List<String>? = null
 )
 
 @Serializable
 data class CardRetrieveResponse(
-    @SerialName("status") val status: String? = null,
-    @SerialName("data") val data: List<CardDetailDto>,
+    val status: String, val data: List<CardDto> = emptyList()
 )
 
 @Serializable
@@ -59,3 +61,14 @@ data class CardCreateData(
     @SerialName("numOfCard") val numOfCard: Int? = null,
     @SerialName("cards") val cards: List<CardListItemDto>? = null,
 )
+
+@Serializable
+data class CategoryCreateRequest(val name: String)
+@Serializable
+data class CategoryCreateData(val categoryId: String)
+@Serializable
+data class CategoryCreateResponse(val status: String, val data: CategoryCreateData)
+@Serializable
+data class CardCategorizeRequest(val cardId: String, val categoryIds: List<String>)
+@Serializable
+data class CardCategorizeResponse(val status: String)

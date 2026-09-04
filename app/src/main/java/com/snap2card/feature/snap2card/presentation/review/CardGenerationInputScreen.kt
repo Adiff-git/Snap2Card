@@ -31,6 +31,7 @@ fun CardGenerationInputScreen(
     onNavigateBack: () -> Unit,
     onCardsGenerated: (jobId: String) -> Unit,
     viewModel: CardGenerationInputViewModel = hiltViewModel(),
+    deckId: String,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

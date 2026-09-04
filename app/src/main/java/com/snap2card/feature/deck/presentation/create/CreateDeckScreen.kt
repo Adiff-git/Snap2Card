@@ -63,12 +63,12 @@ import com.snap2card.design_system.theme.Spacing
 @Composable
 fun CreateDeckScreen(
     onDeckCreated: (deckId: String) -> Unit,
-    onScanWithCamera: () -> Unit,
-    onImportDocument: () -> Unit,
-    onAddCardsManually: () -> Unit,
+    onScanWithCamera: (deckId: String) -> Unit,
+    onImportDocument: (deckId: String) -> Unit,
+    onAddCardsManually: (deckId: String) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: CreateDeckViewModel = hiltViewModel(),
-) {
+    ) {
     var deckName by remember { mutableStateOf("") }
     var tag by remember { mutableStateOf("Medical") }
     val uiState by viewModel.uiState.collectAsState()
@@ -76,7 +76,12 @@ fun CreateDeckScreen(
     LaunchedEffect(uiState) {
         val state = uiState
         if (state is CreateDeckUiState.Success) {
-            onDeckCreated(state.deckId)
+            when (state.destination) {
+                DeckCreationDestination.DETAIL -> onDeckCreated(state.deckId)
+                DeckCreationDestination.CAMERA -> onScanWithCamera(state.deckId)
+                DeckCreationDestination.DOCUMENT -> onImportDocument(state.deckId)
+                DeckCreationDestination.MANUAL -> onAddCardsManually(state.deckId)
+            }
         }
     }
 
@@ -89,7 +94,7 @@ fun CreateDeckScreen(
             Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
                 SecondaryButton(
                     text = if (uiState is CreateDeckUiState.Loading) "Creating..." else "Create empty deck",
-                    onClick = { viewModel.createDeck(deckName, tag) },
+                    onClick = { viewModel.createDeck(deckName, tag, DeckCreationDestination.DETAIL) },
                     enabled = uiState !is CreateDeckUiState.Loading,
                     modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
                 )
@@ -134,7 +139,7 @@ fun CreateDeckScreen(
                 subtitle = "Capture notes or textbook pages and generate cards.",
                 iconBackground = Indigo500,
                 iconTint = MaterialTheme.colorScheme.onPrimary,
-                onClick = onScanWithCamera,
+                onClick = { viewModel.createDeck(deckName, tag, DeckCreationDestination.CAMERA) },
             )
             CardCreationMethodCard(
                 icon = Icons.Default.UploadFile,
@@ -142,7 +147,7 @@ fun CreateDeckScreen(
                 subtitle = "Upload PDFs or images from your device.",
                 iconBackground = BiologyTagBackground,
                 iconTint = Indigo500,
-                onClick = onImportDocument,
+                onClick = { viewModel.createDeck(deckName, tag, DeckCreationDestination.DOCUMENT) },
             )
             CardCreationMethodCard(
                 icon = Icons.Default.EditNote,
@@ -150,7 +155,7 @@ fun CreateDeckScreen(
                 subtitle = "Type your own terms and definitions before review.",
                 iconBackground = MedicalTagBackground,
                 iconTint = Indigo500,
-                onClick = onAddCardsManually,
+                onClick = { viewModel.createDeck(deckName, tag, DeckCreationDestination.MANUAL) },
             )
         }
     }

@@ -9,8 +9,10 @@ import com.snap2card.feature.deck.data.mapper.toDeck
 import com.snap2card.feature.deck.data.mapper.toDomain
 import com.snap2card.feature.deck.data.mapper.toEntity
 import com.snap2card.feature.deck.data.remote.DeckApiService
+import com.snap2card.feature.deck.data.remote.dto.CardCategorizeRequest
 import com.snap2card.feature.deck.data.remote.dto.CardCreateRequest
 import com.snap2card.feature.deck.data.remote.dto.CardRetrieveRequest
+import com.snap2card.feature.deck.data.remote.dto.CategoryCreateRequest
 import com.snap2card.feature.deck.data.remote.dto.CategoryRetrieveRequest
 import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.model.Deck
@@ -46,7 +48,7 @@ class DeckRepositoryImpl @Inject constructor(
         deckDao.getAllDecks().map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun getDeckById(deckId: String): Deck? = try {
-        val deck = deckApiService.getCategory(CategoryRetrieveRequest(deckId)).data.toDeck(deckId)
+        val deck = deckApiService.getCategory(deckId).data.toDeck(deckId)
         deckDao.insertDeck(deck.toEntity(userId = ""))
         deck
     } catch (error: Exception) {
@@ -56,9 +58,16 @@ class DeckRepositoryImpl @Inject constructor(
 
     override suspend fun createDeck(title: String, description: String): Deck {
         val now = DateUtil.now()
+        val categoryName = description.uppercase().take(20).ifBlank { "GENERAL" }
+        val deckId = try {
+            deckApiService.createCategory(CategoryCreateRequest(name = categoryName)).data.categoryId
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            UUID.randomUUID().toString() // local-only fallback — won't exist server-side until retried
+        }
         val entity = DeckEntity(
-            id = UUID.randomUUID().toString(),
-            userId = "", // TODO: inject current user id
+            id = deckId,
+            userId = "",
             title = title,
             description = description,
             createdAt = now,
@@ -76,12 +85,9 @@ class DeckRepositoryImpl @Inject constructor(
 
     override fun getCardsForDeck(deckId: String): Flow<List<Card>> = flow {
         try {
-            val cardIds = deckApiService.getCategory(CategoryRetrieveRequest(deckId)).data.cardIds
-            val cards = if (cardIds.isEmpty()) {
-                emptyList()
-            } else {
-                deckApiService.getCards(CardRetrieveRequest(cardIds)).data.map { it.toDomain(deckId) }
-            }
+            val cardIds = deckApiService.getCategory(deckId).data.cardIds
+            val cards = if (cardIds.isEmpty()) emptyList()
+            else deckApiService.getCards(CardRetrieveRequest(cardIds)).data.map { it.toDomain(deckId) }
             cardDao.insertCards(cards.map { it.toEntity() })
             emit(cards)
         } catch (error: Exception) {
@@ -89,6 +95,7 @@ class DeckRepositoryImpl @Inject constructor(
             emitAll(localCards(deckId))
         }
     }
+
 
     private fun localCards(deckId: String): Flow<List<Card>> =
         cardDao.getCardsForDeck(deckId).map { it.map { entity -> entity.toDomain() } }
@@ -103,14 +110,9 @@ class DeckRepositoryImpl @Inject constructor(
                 )
             )
             val cardId = response.data?.id ?: response.data?.cards?.firstOrNull()?.id
-                ?: error("Card create response missing id")
-            Card(
-                id = cardId,
-                deckId = deckId,
-                front = front,
-                back = back,
-                createdAt = DateUtil.now(),
-            )
+            ?: error("Card create response missing id")
+            deckApiService.categorizeCard(CardCategorizeRequest(cardId = cardId, categoryIds = listOf(deckId)))
+            Card(id = cardId, deckId = deckId, front = front, back = back, createdAt = DateUtil.now())
         } catch (error: Exception) {
             if (error is CancellationException) throw error
             localCard(deckId, front, back)
