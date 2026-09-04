@@ -9,7 +9,6 @@ import com.snap2card.feature.study.data.remote.dto.CreateExamRequest
 import com.snap2card.feature.study.data.remote.dto.ExamApiService
 import com.snap2card.feature.study.data.remote.dto.ExamResultRequest
 import com.snap2card.feature.study.data.remote.dto.StartExamRequest
-import com.snap2card.feature.study.data.remote.dto.ReviewExamRequest
 import com.snap2card.feature.study.domain.model.ExamSession
 import com.snap2card.feature.study.domain.model.ReviewQuiz
 import com.snap2card.feature.study.domain.model.ReviewRecord
@@ -57,7 +56,7 @@ class StudyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getExamReview(examId: String): Result<List<ReviewQuiz>> = runCatching {
-        api.reviewExam(ReviewExamRequest(examId)).data?.quizzes
+        api.reviewExam(examId).data?.quizzes
             ?.map { ReviewQuiz(it.quizId, it.frontSide, it.backSide) }
             ?: emptyList()
     }
