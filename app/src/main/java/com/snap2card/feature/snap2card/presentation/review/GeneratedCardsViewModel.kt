@@ -23,6 +23,7 @@ class GeneratedCardsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val jobId: String = savedStateHandle["jobId"] ?: "local"
+    private val deckId: String? = savedStateHandle["deckId"]
 
     private val _uiState = MutableStateFlow(initialState())
     val uiState: StateFlow<GeneratedCardsUiState> = _uiState.asStateFlow()
@@ -87,12 +88,14 @@ class GeneratedCardsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val deckTitle = state.deckName.ifBlank { "Generated Deck" }
-                val deck = deckRepository.createDeck(deckTitle, "Generated from ${state.category.lowercase()} vocabulary")
-                for (card in selectedCards) {
-                    deckRepository.addCard(deck.id, card.term, card.buildBackSide())
+                val targetDeckId = deckId ?: run {
+                    val deckTitle = state.deckName.ifBlank { "Generated Deck" }
+                    deckRepository.createDeck(deckTitle, "Generated from ${state.category.lowercase()} vocabulary").id
                 }
-                _uiState.value = GeneratedCardsUiState.Saved(deckId = deck.id, savedCount = selectedCards.size)
+                for (card in selectedCards) {
+                    deckRepository.addCard(targetDeckId, card.term, card.buildBackSide())
+                }
+                _uiState.value = GeneratedCardsUiState.Saved(deckId = targetDeckId, savedCount = selectedCards.size)
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 _uiState.value = savingState.copy(

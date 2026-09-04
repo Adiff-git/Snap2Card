@@ -1,7 +1,6 @@
 package com.snap2card.di
 
 import com.snap2card.feature.account.data.repository.AccountRepositoryImpl
-import com.snap2card.feature.account.data.repository.FakeAuthRepositoryImpl
 import com.snap2card.feature.account.domain.repository.AccountRepository
 import com.snap2card.feature.auth.data.repository.AuthRepositoryImpl
 import com.snap2card.feature.auth.domain.repository.AuthRepository

@@ -163,7 +163,7 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
             deckId = deckId,
             onNavigateBack = { navController.popBackStack() },
             onCardsGenerated = { jobId ->
-                navController.navigate(Screen.GeneratedCards.createRoute(jobId)) {
+                navController.navigate(Screen.GeneratedCards.createRoute(deckId, jobId)) {
                     popUpTo(Screen.CardGenerationInput.route) { inclusive = true }
                 }
             },

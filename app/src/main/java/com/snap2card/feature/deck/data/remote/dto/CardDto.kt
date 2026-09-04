@@ -21,7 +21,7 @@ data class CardListData(
 @Serializable
 data class CardListItemDto(
     @SerialName("id") val id: String,
-    @SerialName("frontSide") val frontSide: String,
+    @SerialName("frontSide") val frontSide: String = "",
 )
 
 @Serializable

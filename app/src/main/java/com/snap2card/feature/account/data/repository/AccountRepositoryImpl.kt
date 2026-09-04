@@ -14,8 +14,6 @@ import com.snap2card.feature.deck.domain.repository.DeckRepository
 import com.snap2card.feature.study.domain.model.ReviewRecord
 import com.snap2card.feature.study.domain.repository.StudyRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.emitAll
@@ -87,40 +85,4 @@ class AccountRepositoryImpl @Inject constructor(
     override fun getReviewHistory(): Flow<List<ReviewRecord>> = studyRepository.getAllReviews()
 
     override fun getDeckHistory(): Flow<List<Deck>> = deckRepository.getDecks()
-}
-
-/**
- * Fake auth for local dev — bypasses real Google Sign-In so screens
- * downstream of login (Account, Settings, etc.) can be built/tested
- * without a working auth flow yet.
- * NOT TO BE COMMITTED for final submission.
- */
-@Singleton
-class FakeAuthRepositoryImpl @Inject constructor() : AuthRepository {
-
-    private val fakeUser = User(
-        id = "test-user-1",
-        email = "test@snap2card.dev",
-        displayName = "Test User",
-        photoUrl = null, // or a real image URL if you want to test AsyncImage too
-    )
-
-    private val _currentUser = MutableStateFlow<User?>(fakeUser)
-    override val currentUser: StateFlow<User?> = _currentUser
-
-    override suspend fun signInWithGoogle(idToken: String): Result<User> {
-        _currentUser.value = fakeUser
-        return Result.success(fakeUser)
-    }
-
-    override suspend fun loginWithEmail(email: String, password: String): Result<String> {
-        _currentUser.value = fakeUser
-        return Result.success("FAKE_TOKEN")
-    }
-
-    override suspend fun signOut() {
-        _currentUser.value = null
-    }
-
-    override suspend fun isSessionValid(): Boolean = _currentUser.value != null
 }

@@ -43,12 +43,12 @@ sealed class Screen(val route: String) {
     ) {
         fun createRoute(deckId: String, sourceType: String, uri: String, mimeType: String, name: String? = null): String =
             "card_generation_input/${Uri.encode(deckId)}/${Uri.encode(sourceType)}" +
-                    "?uri=${Uri.encode(uri)}" +
-                    "&mimeType=${Uri.encode(mimeType)}" +
-                    "&name=${Uri.encode(name.orEmpty())}"
+                "?uri=${Uri.encode(uri)}" +
+                "&mimeType=${Uri.encode(mimeType)}" +
+                "&name=${Uri.encode(name.orEmpty())}"
     }
-    data object GeneratedCards : Screen("generated_cards/{jobId}") {
-        fun createRoute(jobId: String) = "generated_cards/${Uri.encode(jobId)}"
+    data object GeneratedCards : Screen("generated_cards/{deckId}/{jobId}") {
+        fun createRoute(deckId: String, jobId: String) = "generated_cards/${Uri.encode(deckId)}/${Uri.encode(jobId)}"
     }
     data object Study : Screen("study/{deckId}") {
         fun createRoute(deckId: String) = "study/$deckId"

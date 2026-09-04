@@ -24,17 +24,8 @@ interface CardApiService {
     @POST("cards")
     suspend fun createCard(@Body request: CardCreateRequest): ApiResponse<CardCreateData>
 
-    /**
-     * GET /cards?ids=CARD1&ids=CARD2
-     * NOTE: the API doc doesn't specify whether repeated `ids` params or a
-     * comma-joined single param is expected. Retrofit's default with
-     * @Query("ids") List<String> sends repeated params (?ids=A&ids=B).
-     * If the server expects "?ids=A,B" instead, switch to a single
-     * @Query("ids") ids: String and join with "," yourself before calling.
-     * Verify against a real response once backend is live.
-     */
     @GET("cards")
-    suspend fun getCards(@Query("ids") ids: List<String>): ApiResponse<List<CardDto>>
+    suspend fun getCards(@Query("ids") ids: String): ApiResponse<List<CardDto>>
 
     @PUT("cards")
     suspend fun editCard(@Body request: CardEditRequest): ApiResponse<Unit?>
