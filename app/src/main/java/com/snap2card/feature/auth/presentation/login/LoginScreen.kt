@@ -82,7 +82,7 @@ fun LoginScreen(
 
     androidx.compose.animation.AnimatedVisibility(
         visible = isVisible,
-        enter = androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(500)) + 
+        enter = androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(500)) +
                 androidx.compose.animation.slideInVertically(
                     initialOffsetY = { 100 },
                     animationSpec = androidx.compose.animation.core.tween(500)

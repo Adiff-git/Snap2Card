@@ -9,12 +9,17 @@ import com.snap2card.feature.deck.data.mapper.toDeck
 import com.snap2card.feature.deck.data.mapper.toDomain
 import com.snap2card.feature.deck.data.mapper.toEntity
 import com.snap2card.feature.deck.data.remote.DeckApiService
+import com.snap2card.feature.deck.data.remote.dto.CardCategorizeRequest
+import com.snap2card.feature.deck.data.remote.dto.CardCreateRequest
+import com.snap2card.feature.deck.data.remote.dto.CategoryCreateRequest
 import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.model.Deck
 import com.snap2card.feature.deck.domain.repository.DeckRepository
+import com.snap2card.feature.snap2card.data.remote.dto.CardEditRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -30,7 +35,12 @@ class DeckRepositoryImpl @Inject constructor(
 
     override fun getDecks(): Flow<List<Deck>> = flow {
         try {
-            val decks = deckApiService.getCategoryList().data.categories.map { it.toDeck() }
+            val decks = deckApiService.getCategoryList().data.categories.map { category ->
+                val deck = category.toDeck()
+                val localCardCount = cardDao.getCardCount(deck.id)
+                if (localCardCount > deck.cardCount) deck.copy(cardCount = localCardCount) else deck
+            }
+            deckDao.insertDecks(decks.map { it.toEntity(userId = "") })
             emit(decks)
         } catch (error: Exception) {
             if (error is CancellationException) throw error
@@ -39,16 +49,31 @@ class DeckRepositoryImpl @Inject constructor(
     }
 
     private fun localDecks(): Flow<List<Deck>> =
-        deckDao.getAllDecks().map { entities -> entities.map { it.toDomain() } }
+        deckDao.getAllDecks().map { entities ->
+            entities.map { entity -> entity.toDomain(cardCount = cardDao.getCardCount(entity.id)) }
+        }
 
-    override suspend fun getDeckById(deckId: String): Deck? =
-        deckDao.getDeckById(deckId)?.toDomain()
+    private suspend fun fetchCategory(deckId: String) = deckApiService.getCategory(deckId).data
+
+    override suspend fun getDeckById(deckId: String): Deck? = try {
+        fetchCategory(deckId).toDeck(deckId).also { deckDao.insertDeck(it.toEntity(userId = "")) }
+    } catch (e: Exception) {
+        if (e is CancellationException) throw e
+        deckDao.getDeckById(deckId)?.toDomain(cardCount = cardDao.getCardCount(deckId))
+    }
 
     override suspend fun createDeck(title: String, description: String): Deck {
         val now = DateUtil.now()
+        val categoryName = title.uppercase().take(20).ifBlank { "GENERAL" }
+        val deckId = try {
+            deckApiService.createCategory(CategoryCreateRequest(name = categoryName)).data.categoryId
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            UUID.randomUUID().toString()
+        }
         val entity = DeckEntity(
-            id = UUID.randomUUID().toString(),
-            userId = "", // TODO: inject current user id
+            id = deckId,
+            userId = "",
             title = title,
             description = description,
             createdAt = now,
@@ -62,24 +87,86 @@ class DeckRepositoryImpl @Inject constructor(
         deckDao.updateDeck(deck.toEntity(""))
     }
 
-    override suspend fun deleteDeck(deckId: String) = deckDao.deleteDeck(deckId)
+    override suspend fun deleteDeck(deckId: String) {
+        if (deckId.isBackendCategoryId()) {
+            deckApiService.deleteCategory(deckId)
+        }
+        cardDao.deleteCardsForDeck(deckId)
+        deckDao.deleteDeck(deckId)
+    }
 
-    override fun getCardsForDeck(deckId: String): Flow<List<Card>> =
+    override fun getCardsForDeck(deckId: String): Flow<List<Card>> = flow {
+        try {
+            val localCards = cardDao.getCardsForDeck(deckId).first().map { it.toDomain() }
+            if (localCards.isNotEmpty()) emit(localCards)
+            val cardIds = fetchCategory(deckId).cardIds
+            val remoteCards = if (cardIds.isEmpty()) emptyList()
+            else deckApiService.getCards(cardIds).data.map { it.toDomain(deckId) }
+            val remoteIds = remoteCards.mapTo(mutableSetOf()) { it.id }
+            val cards = remoteCards + localCards.filterNot { it.id in remoteIds }
+            cardDao.insertCards(cards.map { it.toEntity() })
+            emit(cards)
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            emitAll(localCards(deckId))
+        }
+    }
+
+
+    private fun localCards(deckId: String): Flow<List<Card>> =
         cardDao.getCardsForDeck(deckId).map { it.map { entity -> entity.toDomain() } }
 
     override suspend fun addCard(deckId: String, front: String, back: String): Card {
-        val entity = CardEntity(
-            id = UUID.randomUUID().toString(),
-            deckId = deckId,
-            front = front,
-            back = back,
-            createdAt = DateUtil.now(),
-        )
-        cardDao.insertCard(entity)
-        return entity.toDomain()
+        val card = try {
+            val response = deckApiService.createCard(
+                CardCreateRequest(
+                    name = front.take(60).ifBlank { "Manual Card" },
+                    frontSide = front,
+                    backSide = back,
+                )
+            )
+            val cardId = response.data?.id ?: response.data?.cards?.firstOrNull()?.id
+            ?: error("Card create response missing id")
+            deckApiService.categorizeCard(CardCategorizeRequest(cardId = cardId, categoryIds = listOf(deckId)))
+            Card(id = cardId, deckId = deckId, front = front, back = back, createdAt = DateUtil.now())
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            localCard(deckId, front, back)
+        }
+        cardDao.insertCard(card.toEntity())
+        return card
     }
 
-    override suspend fun updateCard(card: Card) = cardDao.updateCard(card.toEntity())
-    override suspend fun deleteCard(cardId: String) = cardDao.deleteCard(cardId)
+    private fun localCard(deckId: String, front: String, back: String): Card = CardEntity(
+        id = UUID.randomUUID().toString(),
+        deckId = deckId,
+        front = front,
+        back = back,
+        createdAt = DateUtil.now(),
+    ).toDomain()
+
+    override suspend fun updateCard(card: Card) {
+        try {
+            deckApiService.updateCard(
+                CardEditRequest(
+                    id = card.id,
+                    frontSide = card.front,
+                    backSide = card.back
+                )
+            )
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+        }
+        cardDao.updateCard(card.toEntity())
+    }
+    override suspend fun deleteCard(cardId: String) {
+        if (cardId.isBackendCardId()) {
+            deckApiService.deleteCard(cardId)
+        }
+        cardDao.deleteCard(cardId)
+    }
     override suspend fun addCards(cards: List<Card>) = cardDao.insertCards(cards.map { it.toEntity() })
+
+    private fun String.isBackendCategoryId(): Boolean = length == 15 && startsWith("CATE")
+    private fun String.isBackendCardId(): Boolean = length == 15 && startsWith("CARD")
 }

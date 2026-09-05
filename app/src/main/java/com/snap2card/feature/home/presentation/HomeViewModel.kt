@@ -2,12 +2,16 @@ package com.snap2card.feature.home.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.snap2card.feature.deck.domain.usecase.DeleteDeckUseCase
+import com.snap2card.feature.home.domain.model.RecentDeck
 import com.snap2card.feature.home.domain.usecase.GetDashboardUseCase
 import com.snap2card.feature.settings.domain.usecase.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,6 +19,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getDashboardUseCase: GetDashboardUseCase,
     private val getSettingsUseCase: GetSettingsUseCase,
+    private val deleteDeckUseCase: DeleteDeckUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -57,6 +62,50 @@ class HomeViewModel @Inject constructor(
                 .onFailure { e ->
                     _uiState.value = HomeUiState.Error(e.message ?: "Failed to load dashboard")
                 }
+        }
+    }
+
+    fun deleteDeck(deck: RecentDeck) {
+        val currentState = _uiState.value as? HomeUiState.Success ?: return
+        if (deck.id in currentState.deletingDeckIds) return
+
+        _uiState.value = currentState.copy(
+            deletingDeckIds = currentState.deletingDeckIds + deck.id,
+            deleteMessage = null,
+            deleteError = null,
+        )
+
+        viewModelScope.launch {
+            try {
+                deleteDeckUseCase(deck.id)
+                _uiState.update { state ->
+                    if (state is HomeUiState.Success) {
+                        state.copy(
+                            recentDecks = state.recentDecks.filterNot { it.id == deck.id },
+                            deletingDeckIds = state.deletingDeckIds - deck.id,
+                            deleteMessage = "Deleted \"${deck.title}\".",
+                            deleteError = null,
+                        )
+                    } else state
+                }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { state ->
+                    if (state is HomeUiState.Success) {
+                        state.copy(
+                            deletingDeckIds = state.deletingDeckIds - deck.id,
+                            deleteMessage = null,
+                            deleteError = error.message ?: "Could not delete deck. Try again.",
+                        )
+                    } else state
+                }
+            }
+        }
+    }
+
+    fun clearDeleteNotice() {
+        _uiState.update { state ->
+            if (state is HomeUiState.Success) state.copy(deleteMessage = null, deleteError = null) else state
         }
     }
 }

@@ -29,7 +29,7 @@
             android:strokeWidth="3"
             android:strokeLineJoin="round"
             android:pathData="M 22 40 L 54 24 L 68 36 L 36 52 Z"/>
-        
+
         <!-- Text/Lines on Top Card -->
         <path
             android:strokeColor="#4F63F0"

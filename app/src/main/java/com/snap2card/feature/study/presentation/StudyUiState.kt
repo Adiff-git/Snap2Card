@@ -8,7 +8,6 @@ sealed class StudyUiState {
     data class Studying(
         val cards: List<Card>,
         val currentIndex: Int,
-        val isRevealed: Boolean,
         val masteryPercent: Int,
     ) : StudyUiState()
     data object Completed : StudyUiState()

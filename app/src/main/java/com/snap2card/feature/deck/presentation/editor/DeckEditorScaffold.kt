@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +55,7 @@ import com.snap2card.design_system.theme.MedicalTagText
 import com.snap2card.design_system.theme.Spacing
 
 data class DeckEditorCardInput(
+    val id: String? = null,
     val front: String = "",
     val back: String = "",
 )
@@ -75,13 +78,14 @@ fun DeckEditorScaffold(
     initialCards: List<DeckEditorCardInput> = listOf(DeckEditorCardInput()),
     showDeckInfo: Boolean = true,
     cardsSectionTitle: String? = "Cards",
-    addCardText: String = "Add Empty Card",
+    addCardText: String = "Add Card",
     validateBeforeSave: Boolean = false,
     validationMessage: String = "Fill in front and back for every card to save.",
     saveTextForCount: ((Int) -> String)? = null,
     subtitleForCount: ((Int) -> String)? = null,
     secondaryActionText: String? = null,
     onSecondaryAction: () -> Unit = {},
+    onDeleteCard: (DeckEditorCardInput) -> Unit = {},
     onNavigateBack: () -> Unit,
     onSave: (DeckEditorResult) -> Unit,
     modifier: Modifier = Modifier,
@@ -89,6 +93,12 @@ fun DeckEditorScaffold(
     var deckName by remember { mutableStateOf(initialDeckName) }
     var tag by remember { mutableStateOf(initialTag) }
     val cards = remember { mutableStateListOf(*initialCards.toTypedArray()) }
+
+    LaunchedEffect(initialCards) {
+        cards.clear()
+        cards.addAll(initialCards)
+    }
+
     val cardsAreValid = cards.isNotEmpty() && cards.all { it.front.isNotBlank() && it.back.isNotBlank() }
     val effectiveSaveText = saveTextForCount?.invoke(cards.size) ?: saveText
     val effectiveSubtitle = subtitleForCount?.invoke(cards.size) ?: subtitle
@@ -174,11 +184,14 @@ fun DeckEditorScaffold(
                 ManualCardEditor(
                     index = index,
                     card = card,
-                    canDelete = cards.size > 1,
+                    canDelete = cards.size > 1 || card.id != null,
                     showValidation = validateBeforeSave,
                     onFrontChange = { cards[index] = card.copy(front = it) },
                     onBackChange = { cards[index] = card.copy(back = it) },
-                    onDelete = { cards.removeAt(index) },
+                    onDelete = {
+                        onDeleteCard(card)
+                        cards.removeAt(index)
+                    },
                 )
             }
             item {
@@ -210,6 +223,7 @@ private fun DeckEditorTopBar(title: String, onNavigateBack: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .height(56.dp)
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = Spacing.xs),
