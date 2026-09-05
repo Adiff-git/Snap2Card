@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -53,6 +54,7 @@ import com.snap2card.design_system.theme.MedicalTagText
 import com.snap2card.design_system.theme.Spacing
 
 data class DeckEditorCardInput(
+    val id: String? = null,
     val front: String = "",
     val back: String = "",
 )
@@ -82,6 +84,7 @@ fun DeckEditorScaffold(
     subtitleForCount: ((Int) -> String)? = null,
     secondaryActionText: String? = null,
     onSecondaryAction: () -> Unit = {},
+    onDeleteCard: (DeckEditorCardInput) -> Unit = {},
     onNavigateBack: () -> Unit,
     onSave: (DeckEditorResult) -> Unit,
     modifier: Modifier = Modifier,
@@ -174,11 +177,14 @@ fun DeckEditorScaffold(
                 ManualCardEditor(
                     index = index,
                     card = card,
-                    canDelete = cards.size > 1,
+                    canDelete = cards.size > 1 || card.id != null,
                     showValidation = validateBeforeSave,
                     onFrontChange = { cards[index] = card.copy(front = it) },
                     onBackChange = { cards[index] = card.copy(back = it) },
-                    onDelete = { cards.removeAt(index) },
+                    onDelete = {
+                        onDeleteCard(card)
+                        cards.removeAt(index)
+                    },
                 )
             }
             item {
@@ -210,6 +216,7 @@ private fun DeckEditorTopBar(title: String, onNavigateBack: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .height(56.dp)
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = Spacing.xs),

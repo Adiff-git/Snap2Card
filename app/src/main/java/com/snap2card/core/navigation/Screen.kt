@@ -26,24 +26,29 @@ sealed class Screen(val route: String) {
     data object DeckDetail : Screen("deck_detail/{deckId}") {
         fun createRoute(deckId: String) = "deck_detail/$deckId"
     }
-    data object CreateDeck : Screen("create_deck")
     data object EditDeck : Screen("edit_deck/{deckId}") {
         fun createRoute(deckId: String) = "edit_deck/$deckId"
     }
-    data object GeneratedCards : Screen("generated_cards/{jobId}") {
-        fun createRoute(jobId: String) = "generated_cards/$jobId"
+    data object CreateDeckCamera : Screen("create_deck/{deckId}/camera") {
+        fun createRoute(deckId: String) = "create_deck/$deckId/camera"
     }
-    data object CreateDeckCamera : Screen("create_deck/camera")
-    data object CreateDeckDocument : Screen("create_deck/document")
-    data object CreateDeckManual : Screen("create_deck/manual")
+    data object CreateDeckDocument : Screen("create_deck/{deckId}/document") {
+        fun createRoute(deckId: String) = "create_deck/$deckId/document"
+    }
+    data object CreateDeckManual : Screen("create_deck/{deckId}/manual") {
+        fun createRoute(deckId: String) = "create_deck/$deckId/manual"
+    }
     data object CardGenerationInput : Screen(
-        "card_generation_input/{sourceType}?uri={uri}&mimeType={mimeType}&name={name}"
+        "card_generation_input/{deckId}/{sourceType}?uri={uri}&mimeType={mimeType}&name={name}"
     ) {
-        fun createRoute(sourceType: String, uri: String, mimeType: String, name: String? = null): String =
-            "card_generation_input/${Uri.encode(sourceType)}" +
+        fun createRoute(deckId: String, sourceType: String, uri: String, mimeType: String, name: String? = null): String =
+            "card_generation_input/${Uri.encode(deckId)}/${Uri.encode(sourceType)}" +
                 "?uri=${Uri.encode(uri)}" +
                 "&mimeType=${Uri.encode(mimeType)}" +
                 "&name=${Uri.encode(name.orEmpty())}"
+    }
+    data object GeneratedCards : Screen("generated_cards/{deckId}/{jobId}") {
+        fun createRoute(deckId: String, jobId: String) = "generated_cards/${Uri.encode(deckId)}/${Uri.encode(jobId)}"
     }
     data object Study : Screen("study/{deckId}") {
         fun createRoute(deckId: String) = "study/$deckId"

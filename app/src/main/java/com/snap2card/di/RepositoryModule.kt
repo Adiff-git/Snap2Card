@@ -1,19 +1,21 @@
 package com.snap2card.di
 
 import com.snap2card.feature.account.data.repository.AccountRepositoryImpl
-import com.snap2card.feature.account.data.repository.FakeAuthRepositoryImpl
 import com.snap2card.feature.account.domain.repository.AccountRepository
 import com.snap2card.feature.auth.data.repository.AuthRepositoryImpl
 import com.snap2card.feature.auth.domain.repository.AuthRepository
 import com.snap2card.feature.deck.data.repository.DeckRepositoryImpl
 import com.snap2card.feature.deck.domain.repository.DeckRepository
+import com.snap2card.feature.history.data.repository.HistoryRepositoryImpl
+import com.snap2card.feature.history.domain.repository.HistoryRepository
 import com.snap2card.feature.home.data.repository.DashboardRepositoryImpl
 import com.snap2card.feature.home.domain.repository.DashboardRepository
 import com.snap2card.feature.settings.data.repository.SettingsRepositoryImpl
 import com.snap2card.feature.settings.domain.repository.SettingsRepository
 import com.snap2card.feature.snap2card.data.repository.OcrRepositoryImpl
-import com.snap2card.feature.snap2card.domain.repository.FakeOcrRepositoryImpl
+import com.snap2card.feature.snap2card.data.vocabulary.repository.VocabularyGenerationRepositoryImpl
 import com.snap2card.feature.snap2card.domain.repository.OcrRepository
+import com.snap2card.feature.snap2card.domain.vocabulary.repository.VocabularyGenerationRepository
 import com.snap2card.feature.study.data.repository.StudyRepositoryImpl
 import com.snap2card.feature.study.domain.repository.StudyRepository
 import dagger.Binds
@@ -51,4 +53,11 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindDashboardRepository(impl: DashboardRepositoryImpl): DashboardRepository
+
+    @Binds @Singleton
+    abstract fun bindVocabularyGenerationRepository(impl: VocabularyGenerationRepositoryImpl): VocabularyGenerationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindHistoryRepository(impl: HistoryRepositoryImpl): HistoryRepository
 }

@@ -1,6 +1,11 @@
 package com.snap2card.feature.deck.presentation.edit
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.snap2card.design_system.components.feedback.ErrorState
+import com.snap2card.design_system.components.feedback.LoadingIndicator
 import com.snap2card.feature.deck.presentation.editor.DeckEditorCardInput
 import com.snap2card.feature.deck.presentation.editor.DeckEditorScaffold
 
@@ -10,33 +15,31 @@ fun EditDeckScreen(
     deckId: String,
     onNavigateBack: () -> Unit,
     onDeckSaved: (deckId: String) -> Unit,
+    onStudyClick: (String) -> Unit,
+    viewModel: EditDeckViewModel = hiltViewModel(),
 ) {
-    DeckEditorScaffold(
-        topBarTitle = "Review & Edit",
-        title = "Generated Cards (3)",
-        subtitle = "",
-        titleTag = "Medical",
-        saveText = "Save Deck",
-        initialDeckName = "Mitochondria",
-        initialTag = "Medical",
-        initialCards = listOf(
-            DeckEditorCardInput(
-                front = "Mitochondria",
-                back = "The powerhouse of the cell, responsible for generating most of the cell's supply of adenosine triphosphate.",
-            ),
-            DeckEditorCardInput(
-                front = "Nucleus",
-                back = "A membrane-bound organelle found in eukaryotic cells that contains the cell's genetic material.",
-            ),
-            DeckEditorCardInput(
-                front = "Ribosome",
-                back = "A complex macromolecular machine found within all living cells that performs biological protein synthesis.",
-            ),
-        ),
-        showDeckInfo = false,
-        cardsSectionTitle = null,
-        secondaryActionText = "Regenerate",
-        onNavigateBack = onNavigateBack,
-        onSave = { _ -> onDeckSaved(deckId) },
-    )
+    val uiState by viewModel.uiState.collectAsState()
+
+    when (val state = uiState) {
+        EditDeckUiState.Loading -> LoadingIndicator(message = "Loading deck...")
+        is EditDeckUiState.Error -> ErrorState(message = state.message, onRetry = viewModel::retry)
+        is EditDeckUiState.Success -> DeckEditorScaffold(
+            topBarTitle = "Deck Details",
+            title = state.deck.title,
+            subtitle = "${state.cards.size} ${if (state.cards.size == 1) "card" else "cards"}",
+            saveText = "Done",
+            initialDeckName = state.deck.title,
+            initialTag = state.deck.description,
+            initialCards = state.cards.map { card ->
+                DeckEditorCardInput(id = card.id, front = card.front, back = card.back)
+            },
+            showDeckInfo = false,
+            cardsSectionTitle = null,
+            onNavigateBack = onNavigateBack,
+            onSave = { result -> viewModel.saveChanges(result); onDeckSaved(deckId) },
+            onDeleteCard = { card -> card.id?.let(viewModel::deleteCard) },
+            secondaryActionText = "Study",
+            onSecondaryAction = { onStudyClick(deckId) },
+        )
+    }
 }

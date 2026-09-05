@@ -58,20 +58,20 @@ fun SettingsScreen(
                 }
                 is SettingsUiState.Success -> {
                     val settings = state.settings
-                    
+
                     SettingsSection("Account") {
                         SettingRow(
-                            icon = { Icon(Icons.Default.AccountCircle, null, tint = MaterialTheme.colorScheme.primary) }, 
-                            label = "Profile Details", 
+                            icon = { Icon(Icons.Default.AccountCircle, null, tint = MaterialTheme.colorScheme.primary) },
+                            label = "Profile Details",
                             onClick = onAccountClick
                         ) {
                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    
+
                     SettingsSection("Study") {
                         SettingRow(
-                            icon = { Icon(Icons.Default.Flag, null, tint = MaterialTheme.colorScheme.primary) }, 
+                            icon = { Icon(Icons.Default.Flag, null, tint = MaterialTheme.colorScheme.primary) },
                             label = "Daily Study Goal",
                             subLabel = "${settings.dailyGoalCards} cards/day",
                             onClick = { showGoalDialog = true }
@@ -79,28 +79,28 @@ fun SettingsScreen(
                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    
+
                     SettingsSection("Appearance") {
                         SettingRow(
-                            icon = { Icon(Icons.Default.DarkMode, null, tint = MaterialTheme.colorScheme.primary) }, 
+                            icon = { Icon(Icons.Default.DarkMode, null, tint = MaterialTheme.colorScheme.primary) },
                             label = "Dark Mode"
                         ) {
                             Switch(
-                                checked = settings.darkMode, 
+                                checked = settings.darkMode,
                                 onCheckedChange = { viewModel.updateSettings(settings.copy(darkMode = it)) }
                             )
                         }
                     }
-                    
+
                     SettingsSection("General") {
                         SettingRow(
-                            icon = { Icon(Icons.Default.Notifications, null, tint = MaterialTheme.colorScheme.primary) }, 
+                            icon = { Icon(Icons.Default.Notifications, null, tint = MaterialTheme.colorScheme.primary) },
                             label = "Notifications",
                             subLabel = "Daily reminders"
                         ) {
                             Switch(
-                                checked = settings.notificationsEnabled, 
-                                onCheckedChange = { 
+                                checked = settings.notificationsEnabled,
+                                onCheckedChange = {
                                     viewModel.updateSettings(settings.copy(notificationsEnabled = it))
                                     coroutineScope.launch {
                                         snackbarHostState.showSnackbar(if (it) "Notifications enabled" else "Notifications disabled")
@@ -110,27 +110,27 @@ fun SettingsScreen(
                         }
                         Divider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(horizontal = Spacing.md))
                         SettingRow(
-                            icon = { Icon(Icons.Default.Language, null, tint = MaterialTheme.colorScheme.primary) }, 
+                            icon = { Icon(Icons.Default.Language, null, tint = MaterialTheme.colorScheme.primary) },
                             label = "Language",
                             subLabel = "English"
                         ) {}
                     }
-                    
+
                     SettingsSection("Support") {
                         SettingRow(
-                            icon = { Icon(Icons.Default.HelpOutline, null, tint = MaterialTheme.colorScheme.primary) }, 
+                            icon = { Icon(Icons.Default.HelpOutline, null, tint = MaterialTheme.colorScheme.primary) },
                             label = "Help & Support"
                         ) {}
                         Divider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(horizontal = Spacing.md))
                         SettingRow(
-                            icon = { Icon(Icons.Default.Feedback, null, tint = MaterialTheme.colorScheme.primary) }, 
+                            icon = { Icon(Icons.Default.Feedback, null, tint = MaterialTheme.colorScheme.primary) },
                             label = "Send Feedback",
                             onClick = { showFeedbackDialog = true }
                         ) {}
                     }
-                    
+
                     Spacer(Modifier.height(Spacing.xl))
-                    
+
                     OutlinedButton(
     onClick = {
         viewModel.signOut()

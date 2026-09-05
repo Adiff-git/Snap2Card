@@ -28,6 +28,9 @@ interface CardDao {
     @Query("DELETE FROM cards WHERE id = :cardId")
     suspend fun deleteCard(cardId: String)
 
+    @Query("DELETE FROM cards WHERE deckId = :deckId")
+    suspend fun deleteCardsForDeck(deckId: String)
+
     @Query("SELECT COUNT(*) FROM cards WHERE deckId = :deckId")
     suspend fun getCardCount(deckId: String): Int
 }

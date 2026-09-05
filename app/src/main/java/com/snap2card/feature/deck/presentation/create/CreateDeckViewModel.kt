@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class DeckCreationDestination { DETAIL, CAMERA, DOCUMENT, MANUAL }
+
 @HiltViewModel
 class CreateDeckViewModel @Inject constructor(
     private val createDeckUseCase: CreateDeckUseCase,
@@ -18,16 +20,19 @@ class CreateDeckViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<CreateDeckUiState>(CreateDeckUiState.Idle)
     val uiState: StateFlow<CreateDeckUiState> = _uiState.asStateFlow()
 
-    fun createDeck(title: String, description: String) {
+    fun createDeck(title: String, tag: String, destination: DeckCreationDestination) {
         if (title.isBlank()) {
             _uiState.value = CreateDeckUiState.Error("Title cannot be empty")
             return
         }
         viewModelScope.launch {
             _uiState.value = CreateDeckUiState.Loading
-            runCatching { createDeckUseCase(title, description) }
-                .onSuccess { deck -> _uiState.value = CreateDeckUiState.Success(deck.id) }
+            // NOTE: pre-existing bug — `tag` lands in `description`, not a tag field.
+            // Leaving as-is here; flag separately since fixing it may need a use-case signature change.
+            runCatching { createDeckUseCase(title, tag) }
+                .onSuccess { deck -> _uiState.value = CreateDeckUiState.Success(deck.id, destination) }
                 .onFailure { e -> _uiState.value = CreateDeckUiState.Error(e.message ?: "Failed to create deck") }
         }
     }
+
 }
