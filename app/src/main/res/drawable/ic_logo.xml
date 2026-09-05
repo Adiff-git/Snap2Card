@@ -1,0 +1,40 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="1.2"
+        android:scaleY="1.2"
+        android:translateX="-10"
+        android:translateY="-10">
+        <!-- Bottom card -->
+        <path
+            android:fillColor="#E4E7FD"
+            android:strokeColor="#4F63F0"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round"
+            android:pathData="M 22 56 L 54 40 L 68 52 L 36 68 Z"/>
+        <!-- Middle card -->
+        <path
+            android:fillColor="#F1F2FE"
+            android:strokeColor="#4F63F0"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round"
+            android:pathData="M 22 48 L 54 32 L 68 44 L 36 60 Z"/>
+        <!-- Top card -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:strokeColor="#4F63F0"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round"
+            android:pathData="M 22 40 L 54 24 L 68 36 L 36 52 Z"/>
+
+        <!-- Text/Lines on Top Card -->
+        <path
+            android:strokeColor="#4F63F0"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:pathData="M 38 42 L 50 36 M 40 46 L 56 38"/>
+    </group>
+</vector>

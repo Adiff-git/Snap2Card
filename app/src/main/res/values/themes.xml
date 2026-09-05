@@ -2,6 +2,7 @@
     <style name="Theme.Snap2Card" parent="Theme.Material3.DayNight.NoActionBar" />
     <style name="Theme.Snap2Card.SplashScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
         <item name="postSplashScreenTheme">@style/Theme.Snap2Card</item>
     </style>
 </resources>

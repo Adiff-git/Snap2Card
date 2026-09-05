@@ -13,6 +13,10 @@ interface AuthApiService {
     @POST("account/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
+    /** Logout – ends the current session */
+    @POST("account/logout")
+    suspend fun logout(): Unit
+
     /** Google OAuth login — future use */
     @POST("auth/google")
     suspend fun signInWithGoogle(@Body request: GoogleAuthRequest): AuthResponse
