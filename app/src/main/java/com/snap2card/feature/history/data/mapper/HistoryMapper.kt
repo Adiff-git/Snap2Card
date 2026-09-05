@@ -41,8 +41,8 @@ private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
 fun CategoryLogDto.toDomain(categoryName: String) = HistorySession(
     id = logId,
     title = "$examName — $categoryName", // ASSUMPTION: no categoryName in response; combining with the caller's known category. Adjust display format as you like.
-    cardsReviewed = totalScore, // ASSUMPTION: no "cards reviewed" field exists — using totalScore as a stand-in count. CONFIRM with backend whether totalScore == number of cards, or if it's purely a scoring metric unrelated to card count.
-    completedAt = end.toEpochMillis(),
+    cardsReviewed = totalScore ?: 0, // ASSUMPTION: no "cards reviewed" field exists — using totalScore as a stand-in count. CONFIRM with backend whether totalScore == number of cards, or if it's purely a scoring metric unrelated to card count.
+    completedAt = end?.toEpochMillis() ?: DateUtil.now(),
     status = SessionStatus.COMPLETED, // doc explicitly says this endpoint only returns "completed exam logs" — no per-item status field to check
 )
 
@@ -59,7 +59,7 @@ fun List<DailyLearnedCountDto>.toDomain(): StudyActivity {
             .atStartOfDay(ZoneOffset.UTC)
             .toInstant()
             .toEpochMilli()
-        DayCount(date = epochMillis, count = dto.cardCount)
+        DayCount(date = epochMillis, count = dto.cardCount ?: 0)
     }
     return StudyActivity(
         currentStreakDays = calculateStreak(dailyCounts),

@@ -30,5 +30,5 @@ data class MonthlyLearnedCountData(
 data class DailyLearnedCountDto(
     @SerialName("day") val day: String,       // doc says "YYYY-MM-DD"; live response is a full ISO
     // timestamp instead — see comment in mapper
-    @SerialName("cardCount") val cardCount: Int = 0,
+    @SerialName("cardCount") val cardCount: Int? = null,
 )

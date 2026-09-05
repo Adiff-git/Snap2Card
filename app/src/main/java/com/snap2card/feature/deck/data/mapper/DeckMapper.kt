@@ -39,7 +39,7 @@ fun CategoryDto.toDeck(): Deck {
         id = id,
         title = name,
         description = "",
-        cardCount = numOfCard,
+        cardCount = numOfCard ?: 0,
         createdAt = createdAtMillis,
         updatedAt = createdAtMillis,
     )
@@ -52,7 +52,7 @@ fun CategoryRetrieveData.toDeck(id: String): Deck {
         id = id,
         title = name,
         description = "",
-        cardCount = numOfCard,
+        cardCount = numOfCard ?: 0,
         createdAt = createdAtMillis,
         updatedAt = createdAtMillis,
     )

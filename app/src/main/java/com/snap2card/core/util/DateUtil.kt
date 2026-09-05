@@ -32,9 +32,17 @@ object DateUtil {
         }
 
     fun ApiTimeDto.toEpochMillis(): Long {
-        val offset = runCatching { ZoneOffset.of(gmt) }.getOrDefault(ZoneOffset.UTC)
-        return OffsetDateTime.of(year, month, day, hour, minute, second, 0, offset)
-            .toInstant()
-            .toEpochMilli()
+        val year = year ?: return now()
+        val month = month ?: return now()
+        val day = day ?: return now()
+        val hour = hour ?: 0
+        val minute = minute ?: 0
+        val second = second ?: 0
+        val offset = runCatching { gmt?.let(ZoneOffset::of) ?: ZoneOffset.UTC }.getOrDefault(ZoneOffset.UTC)
+        return runCatching {
+            OffsetDateTime.of(year, month, day, hour, minute, second, 0, offset)
+                .toInstant()
+                .toEpochMilli()
+        }.getOrDefault(now())
     }
 }
