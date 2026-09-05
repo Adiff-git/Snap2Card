@@ -1,6 +1,7 @@
 package com.snap2card.feature.deck.presentation.edit
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -20,6 +21,18 @@ fun EditDeckScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.saveResult.collect { result ->
+            when (result) {
+                is EditDeckViewModel.SaveResult.Success -> onDeckSaved(deckId)
+                is EditDeckViewModel.SaveResult.Error -> {
+                    // surface a snackbar/toast here instead of silently swallowing it
+                }
+            }
+        }
+    }
+
+
     when (val state = uiState) {
         EditDeckUiState.Loading -> LoadingIndicator(message = "Loading deck...")
         is EditDeckUiState.Error -> ErrorState(message = state.message, onRetry = viewModel::retry)
@@ -37,7 +50,7 @@ fun EditDeckScreen(
             cardsSectionTitle = null,
             subtitleForCount = { count -> "$count ${if (count == 1) "Card" else "Cards"}" },
             onNavigateBack = onNavigateBack,
-            onSave = { result -> viewModel.saveChanges(result); onDeckSaved(deckId) },
+            onSave = { result -> viewModel.saveChanges(result) },
             onDeleteCard = { card -> card.id?.let(viewModel::deleteCard) },
             secondaryActionText = "Study",
             onSecondaryAction = { onStudyClick(deckId) },

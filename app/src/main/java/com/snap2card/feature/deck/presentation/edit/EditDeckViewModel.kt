@@ -13,9 +13,11 @@ import com.snap2card.feature.deck.domain.usecase.UpdateCardUseCase
 import com.snap2card.feature.deck.presentation.editor.DeckEditorResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -67,17 +69,31 @@ class EditDeckViewModel @Inject constructor(
         }
     }
 
+    private val _saveResult = Channel<SaveResult>(Channel.BUFFERED)
+    val saveResult = _saveResult.receiveAsFlow()
+
+    sealed interface SaveResult {
+        data object Success : SaveResult
+        data class Error(val message: String) : SaveResult
+    }
+
     fun saveChanges(result: DeckEditorResult) {
         viewModelScope.launch {
             val original = (uiState.value as? EditDeckUiState.Success)?.cards ?: emptyList()
             val originalById = original.associateBy { it.id }
-            result.cards.forEach { input ->
-                val existing = input.id?.let(originalById::get)
-                if (existing == null) {
-                    addCardUseCase(deckId, input.front, input.back)      // new card → POST
-                } else if (existing.front != input.front || existing.back != input.back) {
-                    updateCardUseCase(existing.copy(front = input.front, back = input.back))
+            runCatching {
+                result.cards.forEach { input ->
+                    val existing = input.id?.let(originalById::get)
+                    if (existing == null) {
+                        addCardUseCase(deckId, input.front, input.back)
+                    } else if (existing.front != input.front || existing.back != input.back) {
+                        updateCardUseCase(existing.copy(front = input.front, back = input.back))
+                    }
                 }
+            }.onSuccess {
+                _saveResult.send(SaveResult.Success)
+            }.onFailure { e ->
+                _saveResult.send(SaveResult.Error(e.message ?: "Failed to save changes"))
             }
         }
     }
