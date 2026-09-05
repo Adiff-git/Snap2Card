@@ -39,7 +39,7 @@ data class ExamReviewLogDetailData(
     @SerialName("logId") val logId: String,
     @SerialName("examName") val examName: String,
     @SerialName("examLevel") val examLevel: String,
-    @SerialName("resultScore") val resultScore: Int,
+    @SerialName("resultScore") val resultScore: Int? = null,
     @SerialName("totalScore") val totalScore: Int,
     @SerialName("numOfQuiz") val numOfQuiz: Int,
     @SerialName("dateDone") val dateDone: ApiTimeDto,

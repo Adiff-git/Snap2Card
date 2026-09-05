@@ -70,7 +70,10 @@ private fun HistoryDetailContent(detail: ExamReviewDetail) {
         item {
             Column(Modifier.padding(vertical = Spacing.md)) {
                 Text(detail.examName, style = MaterialTheme.typography.titleLarge)
-                Text("${detail.resultScore}/${detail.totalScore} correct", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = detail.resultScore?.let { "$it/${detail.totalScore} correct" } ?: "In progress",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
             }
         }
         items(detail.quizResults) { quiz -> QuizResultRow(quiz) }
