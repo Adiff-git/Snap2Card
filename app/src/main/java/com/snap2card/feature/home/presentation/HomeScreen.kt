@@ -62,6 +62,7 @@ import com.snap2card.feature.home.domain.model.RecentDeck
 fun HomeScreen(
     onDeckClick: (String) -> Unit,
     onSnapClick: () -> Unit,
+    onReviewClick: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -76,6 +77,7 @@ fun HomeScreen(
             state = state,
             onDeckClick = onDeckClick,
             onSnapClick = onSnapClick,
+            onReviewClick = onReviewClick,
         )
     }
 }
@@ -85,6 +87,7 @@ private fun HomeContent(
     state: HomeUiState.Success,
     onDeckClick: (String) -> Unit,
     onSnapClick: () -> Unit,
+    onReviewClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -117,6 +120,7 @@ private fun HomeContent(
         DailyGoalCard(
             total = state.dailyGoalTotal,
             completed = state.dailyGoalCompleted,
+            onReviewClick = onReviewClick,
         )
 
         Spacer(Modifier.height(Spacing.lg))
@@ -381,6 +385,7 @@ private fun RecentDeckCard(
 private fun DailyGoalCard(
     total: Int,
     completed: Int,
+    onReviewClick: () -> Unit,
 ) {
     val safeTotal = total.coerceAtLeast(1)
     val safeCompleted = completed.coerceIn(0, safeTotal)
@@ -448,7 +453,7 @@ private fun DailyGoalCard(
                 )
             }
 
-            TextButton(onClick = { /* TODO: Navigate to study */ }) {
+            TextButton(onClick = onReviewClick) {
                 Text(
                     "Review",
                     style = MaterialTheme.typography.labelLarge,
