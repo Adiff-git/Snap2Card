@@ -237,8 +237,9 @@ private fun DeckCategoryCard(deck: Deck, onClick: () -> Unit) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            val cardCountLabel = if (deck.cardCount == 1) "Card" else "Cards"
             Text(
-                text = if (deck.cardCount > 0) "${deck.cardCount} Cards" else "Card count unavailable",
+                text = "${deck.cardCount} $cardCountLabel",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

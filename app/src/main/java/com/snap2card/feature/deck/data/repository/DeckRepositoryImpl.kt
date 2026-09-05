@@ -34,7 +34,11 @@ class DeckRepositoryImpl @Inject constructor(
 
     override fun getDecks(): Flow<List<Deck>> = flow {
         try {
-            val decks = deckApiService.getCategoryList().data.categories.map { it.toDeck() }
+            val decks = deckApiService.getCategoryList().data.categories.map { category ->
+                val deck = category.toDeck()
+                val localCardCount = cardDao.getCardCount(deck.id)
+                if (localCardCount > deck.cardCount) deck.copy(cardCount = localCardCount) else deck
+            }
             deckDao.insertDecks(decks.map { it.toEntity(userId = "") })
             emit(decks)
         } catch (error: Exception) {
@@ -44,7 +48,9 @@ class DeckRepositoryImpl @Inject constructor(
     }
 
     private fun localDecks(): Flow<List<Deck>> =
-        deckDao.getAllDecks().map { entities -> entities.map { it.toDomain() } }
+        deckDao.getAllDecks().map { entities ->
+            entities.map { entity -> entity.toDomain(cardCount = cardDao.getCardCount(entity.id)) }
+        }
 
     private suspend fun fetchCategory(deckId: String) = deckApiService.getCategory(deckId).data
 
@@ -52,7 +58,7 @@ class DeckRepositoryImpl @Inject constructor(
         fetchCategory(deckId).toDeck(deckId).also { deckDao.insertDeck(it.toEntity(userId = "")) }
     } catch (e: Exception) {
         if (e is CancellationException) throw e
-        deckDao.getDeckById(deckId)?.toDomain()
+        deckDao.getDeckById(deckId)?.toDomain(cardCount = cardDao.getCardCount(deckId))
     }
 
     override suspend fun createDeck(title: String, description: String): Deck {
