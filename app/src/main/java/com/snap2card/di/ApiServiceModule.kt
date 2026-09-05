@@ -2,6 +2,7 @@ package com.snap2card.di
 
 import com.snap2card.feature.account.data.remote.AccountApiService
 import com.snap2card.feature.auth.data.remote.AuthApiService
+import com.snap2card.feature.deck.data.remote.CategoryApiService
 import com.snap2card.feature.deck.data.remote.DeckApiService
 import com.snap2card.feature.snap2card.data.remote.CardApiService
 import com.snap2card.feature.snap2card.data.vocabulary.remote.VocabularyApiService
@@ -45,4 +46,9 @@ object ApiServiceModule {
     @Provides @Singleton
     fun provideExamApiService(retrofit: Retrofit): ExamApiService =
         retrofit.create(ExamApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCategoryApiService(retrofit: Retrofit): CategoryApiService =
+        retrofit.create(CategoryApiService::class.java)
 }

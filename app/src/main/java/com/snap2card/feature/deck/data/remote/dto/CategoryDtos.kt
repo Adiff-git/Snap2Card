@@ -43,6 +43,20 @@ data class CategoryRetrieveData(
 )
 
 @Serializable
+data class CategoryLogsData(
+    val logs: List<CategoryLogDto>,
+)
+
+@Serializable
+data class CategoryLogDto(
+    @SerialName("logId") val logId: String,
+    @SerialName("examName") val examName: String,
+    @SerialName("score") val score: Int,
+    @SerialName("totalScore") val totalScore: Int,
+    @SerialName("start") val start: ApiTimeDto,
+    @SerialName("end") val end: ApiTimeDto,
+)
+@Serializable
 data class ApiTimeDto(
     @SerialName("year") val year: Int,
     @SerialName("month") val month: Int,
