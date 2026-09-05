@@ -1,5 +1,7 @@
 package com.snap2card.feature.study.data.remote.dto
 
+import com.snap2card.feature.deck.data.remote.dto.ApiTimeDto
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -31,3 +33,25 @@ data class ApiResponse<T>(val status: String, val data: T? = null)
 
 @Serializable
 data class StatusOnlyResponse(val status: String)
+
+@Serializable
+data class ExamReviewLogDetailData(
+    @SerialName("logId") val logId: String,
+    @SerialName("examName") val examName: String,
+    @SerialName("examLevel") val examLevel: String,
+    @SerialName("resultScore") val resultScore: Int,
+    @SerialName("totalScore") val totalScore: Int,
+    @SerialName("numOfQuiz") val numOfQuiz: Int,
+    @SerialName("dateDone") val dateDone: ApiTimeDto,
+    @SerialName("quizResults") val quizResults: List<QuizResultDto>,
+)
+
+@Serializable
+data class QuizResultDto(
+    @SerialName("quizId") val quizId: String,
+    @SerialName("frontSide") val frontSide: String,
+    @SerialName("backSide") val backSide: String,
+    @SerialName("accountAnswer") val accountAnswer: Boolean,
+    @SerialName("resultScore") val resultScore: Int,
+    @SerialName("totalScore") val totalScore: Int,
+)

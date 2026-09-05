@@ -13,6 +13,7 @@ import com.snap2card.feature.study.domain.model.ExamSession
 import com.snap2card.feature.study.domain.model.ReviewQuiz
 import com.snap2card.feature.study.domain.model.ReviewRecord
 import com.snap2card.feature.study.domain.model.ReviewResult
+import com.snap2card.feature.study.domain.model.ExamReviewDetail
 import com.snap2card.feature.study.domain.repository.StudyRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -67,4 +68,8 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun completeExam(examLogId: String): Result<Unit> =
         runCatching { api.completeExam(CompleteExamRequest(examLogId)) }.map { }
+
+    override suspend fun getExamReviewDetail(examLogId: String): Result<ExamReviewDetail> = runCatching {
+        api.getReviewLogDetail(examLogId).data?.toDomain() ?: error("Missing review detail in response")
+    }
 }

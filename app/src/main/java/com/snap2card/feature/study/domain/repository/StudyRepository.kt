@@ -1,5 +1,6 @@
 package com.snap2card.feature.study.domain.repository
 
+import com.snap2card.feature.study.domain.model.ExamReviewDetail
 import com.snap2card.feature.study.domain.model.ExamSession
 import com.snap2card.feature.study.domain.model.ReviewQuiz
 import com.snap2card.feature.study.domain.model.ReviewRecord
@@ -15,4 +16,5 @@ interface StudyRepository {
     suspend fun getExamReview(examId: String): Result<List<ReviewQuiz>>
     suspend fun submitResult(examLogId: String, quizId: String, result: Boolean): Result<Unit>
     suspend fun completeExam(examLogId: String): Result<Unit>
+    suspend fun getExamReviewDetail(examLogId: String): Result<ExamReviewDetail>
 }

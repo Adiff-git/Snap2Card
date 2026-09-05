@@ -101,7 +101,7 @@ class DeckRepositoryImpl @Inject constructor(
             if (localCards.isNotEmpty()) emit(localCards)
             val cardIds = fetchCategory(deckId).cardIds
             val remoteCards = if (cardIds.isEmpty()) emptyList()
-            else deckApiService.getCards(cardIds.joinToString(",")).data.map { it.toDomain(deckId) }
+            else deckApiService.getCards(cardIds).data.map { it.toDomain(deckId) }
             val remoteIds = remoteCards.mapTo(mutableSetOf()) { it.id }
             val cards = remoteCards + localCards.filterNot { it.id in remoteIds }
             cardDao.insertCards(cards.map { it.toEntity() })

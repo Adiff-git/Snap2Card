@@ -37,7 +37,7 @@ interface DeckApiService {
 
     @Headers("Content-Type: application/json")
     @GET("cards")
-    suspend fun getCards(@Query("ids") ids: String): CardRetrieveResponse
+    suspend fun getCards(@Query("ids") ids: List<String>): CardRetrieveResponse
 
     @POST("cards")
     suspend fun createCard(@Body request: CardCreateRequest): CardCreateResponse

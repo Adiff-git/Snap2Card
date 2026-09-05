@@ -13,3 +13,22 @@ enum class ReviewResult {
     GOT_IT,
     AGAIN,
 }
+
+data class ExamReviewDetail(
+    val logId: String,
+    val examName: String,
+    val examLevel: String,
+    val resultScore: Int,
+    val totalScore: Int,
+    val numOfQuiz: Int,
+    val completedAt: Long?,
+    val quizResults: List<QuizResult>,
+)
+
+data class QuizResult(
+    val quizId: String,
+    val frontSide: String,
+    val backSide: String,
+    val wasAttempted: Boolean,
+    val isCorrect: Boolean,
+)
