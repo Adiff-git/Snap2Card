@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -77,7 +78,7 @@ fun DeckEditorScaffold(
     initialCards: List<DeckEditorCardInput> = listOf(DeckEditorCardInput()),
     showDeckInfo: Boolean = true,
     cardsSectionTitle: String? = "Cards",
-    addCardText: String = "Add Empty Card",
+    addCardText: String = "Add Card",
     validateBeforeSave: Boolean = false,
     validationMessage: String = "Fill in front and back for every card to save.",
     saveTextForCount: ((Int) -> String)? = null,
@@ -92,6 +93,12 @@ fun DeckEditorScaffold(
     var deckName by remember { mutableStateOf(initialDeckName) }
     var tag by remember { mutableStateOf(initialTag) }
     val cards = remember { mutableStateListOf(*initialCards.toTypedArray()) }
+
+    LaunchedEffect(initialCards) {
+        cards.clear()
+        cards.addAll(initialCards)
+    }
+
     val cardsAreValid = cards.isNotEmpty() && cards.all { it.front.isNotBlank() && it.back.isNotBlank() }
     val effectiveSaveText = saveTextForCount?.invoke(cards.size) ?: saveText
     val effectiveSubtitle = subtitleForCount?.invoke(cards.size) ?: subtitle

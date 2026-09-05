@@ -18,6 +18,7 @@ data class ManualCardEditorUiState(
     val showValidation: Boolean = false,
     val isSaving: Boolean = false,
     val error: String? = null,
+    val savedCardCount: Int? = null,
 ) {
     val isValid: Boolean = cards.all { it.front.isNotBlank() && it.back.isNotBlank() }
     val saveText: String = if (isSaving) "Saving..." else "Save ${cards.size} ${if (cards.size == 1) "Card" else "Cards"}"
@@ -51,8 +52,7 @@ class ManualCardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(showValidation = true) }
     }
 
-    /** deckName/tag are only used to create a new deck when existingDeckId is null. */
-    fun save(onSaved: () -> Unit) {
+    fun save() {
         val state = _uiState.value
         if (!state.isValid) {
             markValidationShown()
@@ -64,8 +64,7 @@ class ManualCardEditorViewModel @Inject constructor(
             runCatching {
                 state.cards.forEach { card -> deckRepository.addCard(deckId, card.front, card.back) }
             }.onSuccess {
-                _uiState.update { it.copy(isSaving = false) }
-                onSaved()
+                _uiState.update { it.copy(isSaving = false, savedCardCount = state.cards.size) }
             }.onFailure { e ->
                 _uiState.update { it.copy(isSaving = false, error = e.message ?: "Some cards failed to save") }
             }

@@ -26,7 +26,7 @@ fun EditDeckScreen(
         is EditDeckUiState.Success -> DeckEditorScaffold(
             topBarTitle = "Deck Details",
             title = state.deck.title,
-            subtitle = "${state.cards.size} ${if (state.cards.size == 1) "card" else "cards"}",
+            subtitle = "${state.cards.size} ${if (state.cards.size == 1) "Card" else "Cards"}",
             saveText = "Done",
             initialDeckName = state.deck.title,
             initialTag = state.deck.description,
@@ -35,6 +35,7 @@ fun EditDeckScreen(
             },
             showDeckInfo = false,
             cardsSectionTitle = null,
+            subtitleForCount = { count -> "$count ${if (count == 1) "Card" else "Cards"}" },
             onNavigateBack = onNavigateBack,
             onSave = { result -> viewModel.saveChanges(result); onDeckSaved(deckId) },
             onDeleteCard = { card -> card.id?.let(viewModel::deleteCard) },

@@ -56,46 +56,38 @@ fun StudyScreen(
                             progress = state.masteryPercent / 100f,
                         )
                         Spacer(Modifier.height(Spacing.lg))
-                        key(state.currentIndex) {
+                        key(card.id) {
                             FlashCard(front = card.front, back = card.back, modifier = Modifier.weight(1f))
                         }
                         Spacer(Modifier.height(Spacing.lg))
-                        if (!state.isRevealed) {
-                            Button(
-                                onClick = viewModel::revealCard,
-                                modifier = Modifier.fillMaxWidth().height(52.dp),
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                        ) {
+                            OutlinedButton(
+                                onClick = { viewModel.recordAnswer(ReviewResult.AGAIN) },
+                                modifier = Modifier.weight(1f).height(52.dp),
                                 shape = MaterialTheme.shapes.medium,
-                            ) { Text("Tap to Reveal", style = MaterialTheme.typography.labelLarge) }
-                        } else {
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary,
+                                ),
                             ) {
-                                OutlinedButton(
-                                    onClick = { viewModel.recordAnswer(ReviewResult.AGAIN) },
-                                    modifier = Modifier.weight(1f).height(52.dp),
-                                    shape = MaterialTheme.shapes.medium,
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.primary,
-                                    ),
-                                ) {
-                                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(Modifier.width(Spacing.xs))
-                                    Text("Again", style = MaterialTheme.typography.labelLarge)
-                                }
-                                Button(
-                                    onClick = { viewModel.recordAnswer(ReviewResult.GOT_IT) },
-                                    modifier = Modifier.weight(1f).height(52.dp),
-                                    shape = MaterialTheme.shapes.medium,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                                    ),
-                                ) {
-                                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(Modifier.width(Spacing.xs))
-                                    Text("Got it", style = MaterialTheme.typography.labelLarge)
-                                }
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(Spacing.xs))
+                                Text("Again", style = MaterialTheme.typography.labelLarge)
+                            }
+                            Button(
+                                onClick = { viewModel.recordAnswer(ReviewResult.GOT_IT) },
+                                modifier = Modifier.weight(1f).height(52.dp),
+                                shape = MaterialTheme.shapes.medium,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                                ),
+                            ) {
+                                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(Spacing.xs))
+                                Text("Got it", style = MaterialTheme.typography.labelLarge)
                             }
                         }
                     }

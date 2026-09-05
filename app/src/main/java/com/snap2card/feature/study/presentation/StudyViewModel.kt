@@ -58,18 +58,12 @@ class StudyViewModel @Inject constructor(
                         StudyUiState.Studying(
                             cards = quizzes.map { it.toCard(deckId) },
                             currentIndex = 0,
-                            isRevealed = false,
                             masteryPercent = 0,
                         )
                     }
                 }
                 .onFailure { e -> _uiState.value = StudyUiState.Error(e.message ?: "Failed to load review") }
         }
-    }
-
-    fun revealCard() {
-        val s = _uiState.value as? StudyUiState.Studying ?: return
-        _uiState.value = s.copy(isRevealed = true)
     }
 
     fun recordAnswer(result: ReviewResult) {
@@ -88,13 +82,21 @@ class StudyViewModel @Inject constructor(
             }
         }
 
-        if (result == ReviewResult.GOT_IT) gotItCount++
+        if (result == ReviewResult.AGAIN) {
+            val cards = s.cards.toMutableList()
+            cards.removeAt(s.currentIndex)
+            cards.add(card)
+            _uiState.value = s.copy(cards = cards)
+            return
+        }
+
+        gotItCount++
         val next = s.currentIndex + 1
         if (next >= s.cards.size) {
             finishSession()
         } else {
             val mastery = (gotItCount * 100) / s.cards.size
-            _uiState.value = s.copy(currentIndex = next, isRevealed = false, masteryPercent = mastery)
+            _uiState.value = s.copy(currentIndex = next, masteryPercent = mastery)
         }
     }
 

@@ -19,6 +19,7 @@ import com.snap2card.feature.snap2card.data.remote.dto.CardEditRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -96,9 +97,13 @@ class DeckRepositoryImpl @Inject constructor(
 
     override fun getCardsForDeck(deckId: String): Flow<List<Card>> = flow {
         try {
+            val localCards = cardDao.getCardsForDeck(deckId).first().map { it.toDomain() }
+            if (localCards.isNotEmpty()) emit(localCards)
             val cardIds = fetchCategory(deckId).cardIds
-            val cards = if (cardIds.isEmpty()) emptyList()
+            val remoteCards = if (cardIds.isEmpty()) emptyList()
             else deckApiService.getCards(cardIds.joinToString(",")).data.map { it.toDomain(deckId) }
+            val remoteIds = remoteCards.mapTo(mutableSetOf()) { it.id }
+            val cards = remoteCards + localCards.filterNot { it.id in remoteIds }
             cardDao.insertCards(cards.map { it.toEntity() })
             emit(cards)
         } catch (error: Exception) {

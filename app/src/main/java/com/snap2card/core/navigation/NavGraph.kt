@@ -131,7 +131,16 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
         ManualCardEditorScreen(
             deckId = deckId,
             onNavigateBack = { navController.popBackStack() },
-            onCardsSaved = { navController.popBackStack() },
+            onStudy = { id ->
+                navController.navigate(Screen.Study.createRoute(id)) {
+                    popUpTo(Screen.CreateDeckManual.route) { inclusive = true }
+                }
+            },
+            onReview = { id ->
+                navController.navigate(Screen.DeckDetail.createRoute(id)) {
+                    popUpTo(Screen.CreateDeckManual.route) { inclusive = true }
+                }
+            },
         )
     }
     composable(Screen.DeckDetail.route) { backStackEntry ->

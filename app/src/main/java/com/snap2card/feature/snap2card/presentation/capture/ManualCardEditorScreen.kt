@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.snap2card.design_system.components.buttons.PrimaryButton
+import com.snap2card.design_system.components.buttons.SecondaryButton
 import com.snap2card.design_system.components.navigation.AppTopBar
 import com.snap2card.design_system.theme.Indigo100
 import com.snap2card.design_system.theme.Indigo500
@@ -50,31 +51,43 @@ import com.snap2card.feature.deck.presentation.editor.DeckEditorCardInput
 @Composable
 fun ManualCardEditorScreen(
     onNavigateBack: () -> Unit,
-    onCardsSaved: () -> Unit,
+    onStudy: (String) -> Unit,
+    onReview: (String) -> Unit,
     viewModel: ManualCardEditorViewModel = hiltViewModel(),
     deckId: String,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val savedCardCount = uiState.savedCardCount
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
-                title = "Add Cards",
+                title = if (savedCardCount == null) "Add Cards" else "Cards Saved",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = onNavigateBack,
             )
         },
         bottomBar = {
-            ManualCardEditorBottomBar(
-                saveText = uiState.saveText,
-                enabled = uiState.isValid,
-                onSave = {
-                    viewModel.save(onSaved = onCardsSaved)
-                },
-            )
+            if (savedCardCount == null) {
+                ManualCardEditorBottomBar(
+                    saveText = uiState.saveText,
+                    enabled = uiState.isValid && !uiState.isSaving,
+                    onSave = viewModel::save,
+                )
+            }
         },
     ) { padding ->
+        if (savedCardCount != null) {
+            ManualCardSavedContent(
+                savedCardCount = savedCardCount,
+                onStudy = { onStudy(deckId) },
+                onReview = { onReview(deckId) },
+                modifier = Modifier.padding(padding),
+            )
+            return@Scaffold
+        }
+
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
@@ -121,6 +134,45 @@ fun ManualCardEditorScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ManualCardSavedContent(
+    savedCardCount: Int,
+    onStudy: () -> Unit,
+    onReview: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(Spacing.lg),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Cards saved",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(Modifier.height(Spacing.sm))
+        Text(
+            text = "$savedCardCount ${if (savedCardCount == 1) "card" else "cards"} added to this deck.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(Spacing.lg))
+        PrimaryButton(
+            text = "Study",
+            onClick = onStudy,
+        )
+        Spacer(Modifier.height(Spacing.sm))
+        SecondaryButton(
+            text = "Review",
+            onClick = onReview,
+        )
     }
 }
 

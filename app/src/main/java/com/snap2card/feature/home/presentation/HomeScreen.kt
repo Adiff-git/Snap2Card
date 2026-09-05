@@ -408,7 +408,7 @@ private fun RecentDeckCard(
             Spacer(Modifier.height(Spacing.xs))
 
             Text(
-                text = "${deck.cardCount} cards",
+                text = "${deck.cardCount} ${if (deck.cardCount == 1) "Card" else "Cards"}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
