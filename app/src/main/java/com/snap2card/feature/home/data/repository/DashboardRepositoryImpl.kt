@@ -37,7 +37,8 @@ class DashboardRepositoryImpl @Inject constructor(
             month = today.monthValue,
             day = today.dayOfMonth
         )
-        val dailyCompleted = dailyResponse.data.count
+        val dailyGoalTotal = account.dailyGoal.coerceAtLeast(1)
+        val dailyCompleted = dailyResponse.data.count.coerceIn(0, dailyGoalTotal)
 
         // 4. Monthly learned count → streak
         val monthlyResponse = api.getMonthlyLearnedCount()
@@ -48,7 +49,7 @@ class DashboardRepositoryImpl @Inject constructor(
             userPhotoUrl = null,            // avatar handled separately if needed
             streakCount = streak,
             recentDecks = recentDecks,
-            dailyGoalTotal = account.dailyGoal,
+            dailyGoalTotal = dailyGoalTotal,
             dailyGoalCompleted = dailyCompleted,
         )
     }

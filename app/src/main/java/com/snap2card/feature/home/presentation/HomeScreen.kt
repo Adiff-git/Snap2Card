@@ -382,7 +382,15 @@ private fun DailyGoalCard(
     total: Int,
     completed: Int,
 ) {
-    val remaining = (total - completed).coerceAtLeast(0)
+    val safeTotal = total.coerceAtLeast(1)
+    val safeCompleted = completed.coerceIn(0, safeTotal)
+    val remaining = safeTotal - safeCompleted
+    val progress = safeCompleted.toFloat() / safeTotal.toFloat()
+    val remainingText = if (remaining == 0) {
+        "Goal completed today"
+    } else {
+        "$remaining left today"
+    }
 
     Card(
         modifier = Modifier
@@ -418,15 +426,25 @@ private fun DailyGoalCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Daily Goal: $total Cards",
+                    text = "Daily Goal: $safeTotal Cards",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(Modifier.height(Spacing.xxs))
                 Text(
-                    text = "$remaining left today",
+                    text = remainingText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(Spacing.sm))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = Indigo500,
+                    trackColor = Indigo100,
                 )
             }
 
