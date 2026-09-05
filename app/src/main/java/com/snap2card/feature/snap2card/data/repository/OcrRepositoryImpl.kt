@@ -27,8 +27,12 @@ class OcrRepositoryImpl @Inject constructor(
     private val vocabularyApiService: VocabularyApiService,
 ) : OcrRepository {
 
-    override suspend fun extractText(uri: Uri): Result<OcrResult> = try {
-        val ocrResult = textRecognitionService.recognizeText(uri).getOrThrow()
+    override suspend fun extractText(uri: Uri, mimeType: String?): Result<OcrResult> = try {
+        val ocrResult = if (mimeType == "application/pdf") {
+            textRecognitionService.recognizePdfText(uri).getOrThrow()
+        } else {
+            textRecognitionService.recognizeText(uri).getOrThrow()
+        }
         if (!OcrTextProcessor.hasReadableText(ocrResult.text)) {
             throw IllegalArgumentException(OcrTextProcessor.NO_READABLE_TEXT_MESSAGE)
         }
@@ -60,7 +64,7 @@ class OcrRepositoryImpl @Inject constructor(
                 includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES,
             ).data.cards.toDomain()
         } else {
-            val ocrResult = extractText(uri).getOrThrow()
+            val ocrResult = extractText(uri, mimeType).getOrThrow()
             generateVocabularyFromText(ocrResult.text, "scan")
         }
         Result.success(cards)

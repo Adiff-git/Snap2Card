@@ -77,10 +77,11 @@ private fun OcrPreviewContent(
     onGenerateCards: () -> Unit,
     onNavigateBack: () -> Unit,
 ) {
+    val isPdf = state.source.mimeType == "application/pdf"
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Review Scanned Text",
+                title = if (isPdf) "Review PDF Text" else "Review Scanned Text",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = onNavigateBack,
             )
@@ -107,7 +108,7 @@ private fun OcrPreviewContent(
                         onClick = onGenerateCards,
                         enabled = state.rawText.isNotBlank(),
                     )
-                    SecondaryButton(text = "Scan Again", onClick = onNavigateBack)
+                    SecondaryButton(text = if (isPdf) "Choose Another File" else "Scan Again", onClick = onNavigateBack)
                 }
             }
         },
@@ -121,12 +122,12 @@ private fun OcrPreviewContent(
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
             Text(
-                text = "Check the OCR text before generating cards.",
+                text = if (isPdf) "Check the extracted PDF text before generating cards." else "Check the OCR text before generating cards.",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text = "Edit anything that was scanned incorrectly, then generate cards from this text.",
+                text = "Edit anything that was extracted incorrectly, then generate cards from this text.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -138,7 +139,7 @@ private fun OcrPreviewContent(
             OutlinedTextField(
                 value = state.rawText,
                 onValueChange = onRawTextChange,
-                label = { Text("Scanned text") },
+                label = { Text(if (isPdf) "Extracted text" else "Scanned text") },
                 minLines = 12,
                 modifier = Modifier
                     .fillMaxWidth()

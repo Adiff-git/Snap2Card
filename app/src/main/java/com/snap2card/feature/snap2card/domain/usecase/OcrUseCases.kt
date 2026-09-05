@@ -9,7 +9,8 @@ import javax.inject.Inject
 class ExtractTextForOcrUseCase @Inject constructor(
     private val ocrRepository: OcrRepository,
 ) {
-    suspend operator fun invoke(uri: Uri): Result<OcrResult> = ocrRepository.extractText(uri)
+    suspend operator fun invoke(uri: Uri, mimeType: String? = null): Result<OcrResult> =
+        ocrRepository.extractText(uri, mimeType)
 }
 
 class GenerateCardsFromOcrTextUseCase @Inject constructor(

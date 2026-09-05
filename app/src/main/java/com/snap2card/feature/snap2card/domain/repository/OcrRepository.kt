@@ -8,7 +8,7 @@ import com.snap2card.feature.snap2card.domain.vocabulary.model.GeneratedVocabula
  * Generates reviewable cards from a user-selected image or document source.
  */
 interface OcrRepository {
-    suspend fun extractText(uri: Uri): Result<OcrResult>
+    suspend fun extractText(uri: Uri, mimeType: String? = null): Result<OcrResult>
     suspend fun generateCardsFromText(text: String, sourceType: String = "scan"): Result<List<GeneratedVocabularyCard>>
     suspend fun generateCards(uri: Uri, mimeType: String): Result<List<GeneratedVocabularyCard>>
 }

@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.snap2card.feature.snap2card.domain.service.OcrTextProcessor
 import com.snap2card.feature.snap2card.domain.usecase.ExtractTextForOcrUseCase
 import com.snap2card.feature.snap2card.domain.usecase.GenerateCardsFromOcrTextUseCase
-import com.snap2card.feature.snap2card.domain.usecase.UploadImageForOcrUseCase
 import com.snap2card.feature.snap2card.domain.vocabulary.repository.GeneratedVocabularyCardStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +51,6 @@ class CardGenerationInputViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val extractTextForOcrUseCase: ExtractTextForOcrUseCase,
     private val generateCardsFromOcrTextUseCase: GenerateCardsFromOcrTextUseCase,
-    private val uploadImageForOcrUseCase: UploadImageForOcrUseCase,
     private val generatedVocabularyCardStore: GeneratedVocabularyCardStore,
 ) : ViewModel() {
 
@@ -111,17 +109,13 @@ class CardGenerationInputViewModel @Inject constructor(
             return
         }
 
-        if (generationSource.mimeType == "application/pdf") {
-            generateFromSource(generationSource)
-        } else {
-            extractText(generationSource)
-        }
+        extractText(generationSource)
     }
 
     private fun extractText(generationSource: GenerationSource) {
         viewModelScope.launch {
-            _uiState.value = CardGenerationInputUiState.Loading(generationSource, "Scanning text from your image...")
-            extractTextForOcrUseCase(generationSource.uri)
+            _uiState.value = CardGenerationInputUiState.Loading(generationSource, extractionMessage(generationSource))
+            extractTextForOcrUseCase(generationSource.uri, generationSource.mimeType)
                 .onSuccess { ocrResult ->
                     _uiState.value = CardGenerationInputUiState.OcrPreview(
                         source = generationSource,
@@ -132,23 +126,7 @@ class CardGenerationInputViewModel @Inject constructor(
                 .onFailure { error ->
                     _uiState.value = CardGenerationInputUiState.Error(
                         source = generationSource,
-                        message = error.message ?: "Failed to scan text",
-                    )
-                }
-        }
-    }
-
-    private fun generateFromSource(generationSource: GenerationSource) {
-        viewModelScope.launch {
-            _uiState.value = CardGenerationInputUiState.Loading(generationSource, "Analyzing your document and creating flashcards...")
-            uploadImageForOcrUseCase(generationSource.uri, generationSource.mimeType)
-                .onSuccess { generatedCards ->
-                    handleGeneratedCards(generationSource, generatedCards)
-                }
-                .onFailure { error ->
-                    _uiState.value = CardGenerationInputUiState.Error(
-                        source = generationSource,
-                        message = error.message ?: "Failed to generate cards",
+                        message = error.message ?: "Failed to extract text",
                     )
                 }
         }
@@ -157,7 +135,7 @@ class CardGenerationInputViewModel @Inject constructor(
     private fun generateFromText(generationSource: GenerationSource, rawText: String) {
         viewModelScope.launch {
             _uiState.value = CardGenerationInputUiState.Loading(generationSource, "Creating flashcards from reviewed text...")
-            generateCardsFromOcrTextUseCase(rawText, "scan")
+            generateCardsFromOcrTextUseCase(rawText, if (generationSource.mimeType == "application/pdf") "pdf" else "scan")
                 .onSuccess { generatedCards ->
                     handleGeneratedCards(generationSource, generatedCards)
                 }
@@ -190,8 +168,11 @@ class CardGenerationInputViewModel @Inject constructor(
     }
 
     private fun initialLoadingMessage(source: GenerationSource): String =
+        extractionMessage(source)
+
+    private fun extractionMessage(source: GenerationSource): String =
         if (source.mimeType == "application/pdf") {
-            "Analyzing your document and creating flashcards..."
+            "Extracting text from your PDF..."
         } else {
             "Scanning text from your image..."
         }
