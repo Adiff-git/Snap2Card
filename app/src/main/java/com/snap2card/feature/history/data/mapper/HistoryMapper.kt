@@ -67,3 +67,18 @@ fun List<DailyLearnedCountDto>.toDomain(): StudyActivity {
         dailyCounts = dailyCounts,
     )
 }
+
+fun List<DailyLearnedCountDto>.toDailyCounts(): List<DayCount> = map { dto ->
+    // Doc specifies "day" as YYYY-MM-DD, but live responses return a full
+    // ISO timestamp (e.g. "2026-08-31T17:00:00.0"), often with a non-zero
+    // time component. This looks like a server-side Date serialization bug
+    // (possibly a GMT+7 local-midnight value serialized as UTC, shifting
+    // the date back by one). Taking just the date substring for now —
+    // this may be off by one day until backend confirms/fixes. FLAGGED.
+    val datePart = dto.day.substringBefore("T")
+    val epochMillis = LocalDate.parse(datePart)
+        .atStartOfDay(ZoneOffset.UTC)
+        .toInstant()
+        .toEpochMilli()
+    DayCount(date = epochMillis, count = dto.cardCount ?: 0)
+}
