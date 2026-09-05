@@ -18,7 +18,7 @@ data class ExamReviewDetail(
     val logId: String,
     val examName: String,
     val examLevel: String,
-    val resultScore: Int,
+    val resultScore: Int?,
     val totalScore: Int,
     val numOfQuiz: Int,
     val completedAt: Long?,
