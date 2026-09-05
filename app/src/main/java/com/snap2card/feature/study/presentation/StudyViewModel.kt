@@ -7,12 +7,10 @@ import com.snap2card.feature.study.data.mapper.toCard
 import com.snap2card.feature.study.domain.model.ReviewResult
 import com.snap2card.feature.study.domain.repository.StudyRepository
 import com.snap2card.feature.study.domain.usecase.RecordReviewUseCase
-import com.snap2card.feature.study.domain.usecase.StudyDeckUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,6 +38,7 @@ class StudyViewModel @Inject constructor(
     private fun startExamSession() {
         viewModelScope.launch {
             _uiState.value = StudyUiState.Loading
+            gotItCount = 0
 
             val examId = studyRepository.createExam(categoryId)
                 .onFailure { e -> _uiState.value = StudyUiState.Error(e.message ?: "Failed to create exam") }
@@ -58,6 +57,7 @@ class StudyViewModel @Inject constructor(
                         StudyUiState.Studying(
                             cards = quizzes.map { it.toCard(deckId) },
                             currentIndex = 0,
+                            masteredCount = 0,
                             masteryPercent = 0,
                         )
                     }
@@ -96,7 +96,7 @@ class StudyViewModel @Inject constructor(
             finishSession()
         } else {
             val mastery = (gotItCount * 100) / s.cards.size
-            _uiState.value = s.copy(currentIndex = next, masteryPercent = mastery)
+            _uiState.value = s.copy(currentIndex = next, masteredCount = gotItCount, masteryPercent = mastery)
         }
     }
 

@@ -8,6 +8,7 @@ import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
@@ -35,6 +36,20 @@ object FileUtil {
         }
         val requestBody = tempFile.asRequestBody(mimeType.toMediaTypeOrNull())
         return MultipartBody.Part.createFormData(partName, tempFile.name, requestBody)
+    }
+
+    fun uriToRequestBody(
+        context: Context,
+        uri: Uri,
+        mimeType: String = context.contentResolver.getType(uri) ?: "application/octet-stream",
+    ): RequestBody {
+        val extension = MimeTypeMap.getSingleton()
+            .getExtensionFromMimeType(mimeType) ?: "bin"
+        val tempFile = File(context.cacheDir, "upload_${System.currentTimeMillis()}.$extension")
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            FileOutputStream(tempFile).use { output -> input.copyTo(output) }
+        }
+        return tempFile.asRequestBody(mimeType.toMediaTypeOrNull())
     }
 
     fun getMimeType(context: Context, uri: Uri): String =

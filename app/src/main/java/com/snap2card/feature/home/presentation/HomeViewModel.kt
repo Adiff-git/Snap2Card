@@ -25,9 +25,9 @@ class HomeViewModel @Inject constructor(
 
     init { loadDashboard() }
 
-    fun loadDashboard() {
+    fun loadDashboard(showLoading: Boolean = true) {
         viewModelScope.launch {
-            _uiState.value = HomeUiState.Loading
+            if (showLoading) _uiState.value = HomeUiState.Loading
             getDashboardUseCase()
                 .onSuccess { data ->
                     _uiState.value = HomeUiState.Success(

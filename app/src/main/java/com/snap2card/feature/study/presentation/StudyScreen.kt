@@ -51,7 +51,7 @@ fun StudyScreen(
                         Modifier.fillMaxSize().padding(horizontal = Spacing.md, vertical = Spacing.sm),
                     ) {
                         MasteryProgressRow(
-                            current = state.currentIndex + 1,
+                            current = state.masteredCount,
                             total = state.cards.size,
                             progress = state.masteryPercent / 100f,
                         )
@@ -74,7 +74,7 @@ fun StudyScreen(
                             ) {
                                 Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(Spacing.xs))
-                                Text("Again", style = MaterialTheme.typography.labelLarge)
+                                Text("Not yet", style = MaterialTheme.typography.labelLarge)
                             }
                             Button(
                                 onClick = { viewModel.recordAnswer(ReviewResult.GOT_IT) },

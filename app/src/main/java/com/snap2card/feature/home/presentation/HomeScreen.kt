@@ -53,6 +53,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.snap2card.design_system.components.chips.CategoryChip
 import com.snap2card.design_system.components.chips.tagColors
 import com.snap2card.design_system.components.feedback.ErrorState
@@ -85,6 +87,10 @@ fun HomeScreen(
             snackbarHostState.showSnackbar(message)
             viewModel.clearDeleteNotice()
         }
+    }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.loadDashboard(showLoading = false)
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->

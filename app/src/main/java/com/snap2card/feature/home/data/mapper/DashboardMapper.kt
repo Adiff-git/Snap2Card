@@ -12,12 +12,15 @@ private val isoFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE
  * Map a recent-category DTO to the RecentDeck domain model.
  * mastery from backend is 0–100 (percent); we convert to 0.0–1.0 Float.
  */
-fun RecentCategoryItemDto.toRecentDeck(cardCount: Int = 0): RecentDeck = RecentDeck(
+fun RecentCategoryItemDto.toRecentDeck(
+    cardCount: Int = 0,
+    masteryPercent: Float? = null,
+): RecentDeck = RecentDeck(
     id = categoryId,
     title = name,
     category = "Deck",                             // backend does not supply a category label here
     cardCount = cardCount,
-    masteryPercent = ((mastery ?: 0.0) / 100.0).toFloat().coerceIn(0f, 1f)
+    masteryPercent = masteryPercent ?: ((mastery ?: 0.0) / 100.0).toFloat().coerceIn(0f, 1f)
 )
 
 /**

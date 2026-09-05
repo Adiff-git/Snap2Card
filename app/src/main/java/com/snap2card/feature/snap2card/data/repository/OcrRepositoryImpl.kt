@@ -18,7 +18,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -55,10 +54,10 @@ class OcrRepositoryImpl @Inject constructor(
     override suspend fun generateCards(uri: Uri, mimeType: String): Result<List<GeneratedVocabularyCard>> = try {
         val cards = if (mimeType == "application/pdf") {
             vocabularyApiService.generateVocabularyFromPdf(
-                file = FileUtil.uriToMultipart(context, uri),
-                level = VocabularyGenerationDefaults.LEVEL.toRequestBody(),
-                count = VocabularyGenerationDefaults.COUNT.toString().toRequestBody(),
-                includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES.toString().toRequestBody(),
+                file = FileUtil.uriToRequestBody(context, uri, "application/pdf"),
+                level = VocabularyGenerationDefaults.LEVEL,
+                count = VocabularyGenerationDefaults.COUNT,
+                includePhrases = VocabularyGenerationDefaults.INCLUDE_PHRASES,
             ).data.cards.toDomain()
         } else {
             val ocrResult = extractText(uri).getOrThrow()

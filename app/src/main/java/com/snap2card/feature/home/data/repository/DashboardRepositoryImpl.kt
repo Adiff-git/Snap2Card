@@ -7,7 +7,10 @@ import com.snap2card.feature.deck.data.remote.DeckApiService
 import com.snap2card.feature.home.data.remote.DashboardApiService
 import com.snap2card.feature.home.domain.model.DashboardData
 import com.snap2card.feature.home.domain.repository.DashboardRepository
+import com.snap2card.feature.study.data.local.dao.ReviewRecordDao
+import com.snap2card.feature.study.domain.model.ReviewResult
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,6 +27,7 @@ class DashboardRepositoryImpl @Inject constructor(
     private val api: DashboardApiService,
     private val deckApiService: DeckApiService,
     private val cardDao: CardDao,
+    private val reviewRecordDao: ReviewRecordDao,
 ) : DashboardRepository {
 
     override suspend fun getDashboard(): DashboardData {
@@ -44,7 +48,13 @@ class DashboardRepositoryImpl @Inject constructor(
         val recentDecks = recentResponse.data.map { category ->
             val remoteCardCount = categoryCounts[category.categoryId] ?: 0
             val localCardCount = cardDao.getCardCount(category.categoryId)
-            category.toRecentDeck(cardCount = maxOf(remoteCardCount, localCardCount))
+            val cardCount = maxOf(remoteCardCount, localCardCount)
+            val backendMastery = category.mastery?.let { (it / 100.0).toFloat().coerceIn(0f, 1f) } ?: 0f
+            val localMastery = localMasteryPercent(category.categoryId, cardCount)
+            category.toRecentDeck(
+                cardCount = cardCount,
+                masteryPercent = maxOf(backendMastery, localMastery),
+            )
         }
 
         // 3. Daily learned count
@@ -68,5 +78,17 @@ class DashboardRepositoryImpl @Inject constructor(
             dailyGoalTotal = account.dailyGoal,
             dailyGoalCompleted = dailyCompleted,
         )
+    }
+
+    private suspend fun localMasteryPercent(deckId: String, cardCount: Int): Float {
+        val latestReviewByCard = reviewRecordDao.getReviewsForDeck(deckId)
+            .first()
+            .groupBy { it.cardId }
+            .mapValues { (_, reviews) -> reviews.maxBy { it.reviewedAt } }
+        val denominator = maxOf(cardCount, latestReviewByCard.size)
+        if (denominator == 0) return 0f
+
+        val masteredCount = latestReviewByCard.values.count { it.result == ReviewResult.GOT_IT.name }
+        return (masteredCount.toFloat() / denominator).coerceIn(0f, 1f)
     }
 }

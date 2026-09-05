@@ -10,7 +10,6 @@ import com.snap2card.feature.snap2card.data.vocabulary.repository.VocabularyGene
 import com.snap2card.feature.snap2card.domain.vocabulary.model.GeneratedVocabularyCard
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -172,10 +171,10 @@ class VocabularyMapperTest {
         }
 
         override suspend fun generateVocabularyFromPdf(
-            file: MultipartBody.Part,
-            level: RequestBody,
-            count: RequestBody,
-            includePhrases: RequestBody,
+            file: RequestBody,
+            level: String,
+            count: Int,
+            includePhrases: Boolean,
         ): VocabularyGenerationResponse = throw UnsupportedOperationException("Not needed for this test")
     }
 
@@ -185,10 +184,10 @@ class VocabularyMapperTest {
         ): VocabularyGenerationResponse = throw IllegalStateException("network unavailable")
 
         override suspend fun generateVocabularyFromPdf(
-            file: MultipartBody.Part,
-            level: RequestBody,
-            count: RequestBody,
-            includePhrases: RequestBody,
+            file: RequestBody,
+            level: String,
+            count: Int,
+            includePhrases: Boolean,
         ): VocabularyGenerationResponse = throw UnsupportedOperationException("Not needed for this test")
     }
 
@@ -203,10 +202,10 @@ class VocabularyMapperTest {
         )
 
         override suspend fun generateVocabularyFromPdf(
-            file: MultipartBody.Part,
-            level: RequestBody,
-            count: RequestBody,
-            includePhrases: RequestBody,
+            file: RequestBody,
+            level: String,
+            count: Int,
+            includePhrases: Boolean,
         ): VocabularyGenerationResponse = throw UnsupportedOperationException("Not needed for this test")
     }
 }
