@@ -86,7 +86,13 @@ class DeckRepositoryImpl @Inject constructor(
         deckDao.updateDeck(deck.toEntity(""))
     }
 
-    override suspend fun deleteDeck(deckId: String) = deckDao.deleteDeck(deckId)
+    override suspend fun deleteDeck(deckId: String) {
+        if (deckId.isBackendCategoryId()) {
+            deckApiService.deleteCategory(deckId)
+        }
+        cardDao.deleteCardsForDeck(deckId)
+        deckDao.deleteDeck(deckId)
+    }
 
     override fun getCardsForDeck(deckId: String): Flow<List<Card>> = flow {
         try {
@@ -150,4 +156,6 @@ class DeckRepositoryImpl @Inject constructor(
     }
     override suspend fun deleteCard(cardId: String) = cardDao.deleteCard(cardId)
     override suspend fun addCards(cards: List<Card>) = cardDao.insertCards(cards.map { it.toEntity() })
+
+    private fun String.isBackendCategoryId(): Boolean = length == 15 && startsWith("CATE")
 }

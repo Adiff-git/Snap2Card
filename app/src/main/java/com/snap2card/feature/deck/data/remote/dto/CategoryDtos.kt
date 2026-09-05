@@ -43,6 +43,11 @@ data class CategoryRetrieveData(
 )
 
 @Serializable
+data class CategoryDeleteResponse(
+    @SerialName("status") val status: String? = null,
+)
+
+@Serializable
 data class CategoryLogsData(
     val logs: List<CategoryLogDto>,
 )

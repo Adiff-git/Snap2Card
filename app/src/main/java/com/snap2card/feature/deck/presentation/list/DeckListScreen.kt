@@ -17,20 +17,28 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,13 +67,25 @@ fun DeckListScreen(
     viewModel: DeckListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val deleteError = (uiState as? DeckListUiState.Success)?.deleteError
     var query by remember { mutableStateOf("") }
     val visibleDecks = (uiState as? DeckListUiState.Success)
         ?.decks
         ?.filter { deck -> query.isBlank() || deck.title.contains(query, ignoreCase = true) }
         .orEmpty()
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
+    LaunchedEffect(deleteError) {
+        if (deleteError != null) {
+            snackbarHostState.showSnackbar(deleteError)
+            viewModel.clearDeleteError()
+        }
+    }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
@@ -90,7 +110,12 @@ fun DeckListScreen(
                         item { SearchEmptyState() }
                     } else {
                         items(visibleDecks, key = { it.id }) { deck ->
-                            DeckCategoryCard(deck = deck, onClick = { onDeckClick(deck.id) })
+                            SwipeToDeleteDeckItem(
+                                deck = deck,
+                                isDeleting = deck.id in state.deletingDeckIds,
+                                onClick = { onDeckClick(deck.id) },
+                                onDelete = { viewModel.deleteDeck(deck.id) },
+                            )
                         }
                     }
                 }
@@ -216,12 +241,61 @@ private fun ErrorState(message: String) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DeckCategoryCard(deck: Deck, onClick: () -> Unit) {
+private fun SwipeToDeleteDeckItem(
+    deck: Deck,
+    isDeleting: Boolean,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart && !isDeleting) {
+                onDelete()
+            }
+            false
+        },
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = { DeleteDeckBackground() },
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = !isDeleting,
+    ) {
+        DeckCategoryCard(deck = deck, enabled = !isDeleting, onClick = onClick)
+    }
+}
+
+@Composable
+private fun DeleteDeckBackground() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.errorContainer,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(end = Spacing.lg),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete deck",
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+            )
+        }
+    }
+}
+
+@Composable
+private fun DeckCategoryCard(deck: Deck, enabled: Boolean = true, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
