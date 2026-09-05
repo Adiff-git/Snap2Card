@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.snap2card.feature.deck.domain.usecase.DeleteDeckUseCase
 import com.snap2card.feature.home.domain.model.RecentDeck
 import com.snap2card.feature.home.domain.usecase.GetDashboardUseCase
+import com.snap2card.feature.settings.domain.usecase.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,13 +18,32 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getDashboardUseCase: GetDashboardUseCase,
+    private val getSettingsUseCase: GetSettingsUseCase,
     private val deleteDeckUseCase: DeleteDeckUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    init { loadDashboard() }
+    init {
+        observeDailyGoal()
+        loadDashboard()
+    }
+
+    private fun observeDailyGoal() {
+        viewModelScope.launch {
+            getSettingsUseCase().collect { settings ->
+                val currentState = _uiState.value
+                if (currentState is HomeUiState.Success) {
+                    val dailyGoalTotal = settings.dailyGoalCards.coerceAtLeast(1)
+                    _uiState.value = currentState.copy(
+                        dailyGoalTotal = dailyGoalTotal,
+                        dailyGoalCompleted = currentState.dailyGoalCompleted.coerceIn(0, dailyGoalTotal),
+                    )
+                }
+            }
+        }
+    }
 
     fun loadDashboard(showLoading: Boolean = true) {
         viewModelScope.launch {

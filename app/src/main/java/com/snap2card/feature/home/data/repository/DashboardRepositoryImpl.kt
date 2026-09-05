@@ -7,6 +7,7 @@ import com.snap2card.feature.deck.data.remote.DeckApiService
 import com.snap2card.feature.home.data.remote.DashboardApiService
 import com.snap2card.feature.home.domain.model.DashboardData
 import com.snap2card.feature.home.domain.repository.DashboardRepository
+import com.snap2card.feature.settings.domain.repository.SettingsRepository
 import com.snap2card.feature.study.data.local.dao.ReviewRecordDao
 import com.snap2card.feature.study.domain.model.ReviewResult
 import kotlinx.coroutines.CancellationException
@@ -17,7 +18,8 @@ import javax.inject.Singleton
 /**
  * Real implementation of [DashboardRepository].
  * Aggregates data from:
- *  - GET /account              → user name + daily goal
+ *  - GET /account              → user name
+ *  - SettingsRepository       → daily goal
  *  - GET /categories/recent    → recent decks with mastery %
  *  - GET /account/daily-learned-count   → cards studied today
  *  - GET /account/monthly-learned-count → streak calculation
@@ -25,15 +27,17 @@ import javax.inject.Singleton
 @Singleton
 class DashboardRepositoryImpl @Inject constructor(
     private val api: DashboardApiService,
+    private val settingsRepository: SettingsRepository,
     private val deckApiService: DeckApiService,
     private val cardDao: CardDao,
     private val reviewRecordDao: ReviewRecordDao,
 ) : DashboardRepository {
 
     override suspend fun getDashboard(): DashboardData {
-        // 1. User profile + daily goal
+        // 1. User profile + locally configured daily goal
         val accountResponse = api.getAccount()
         val account = accountResponse.data
+        val settings = settingsRepository.getSettings().first()
 
         // 2. Recent decks (with mastery %)
         val recentResponse = api.getRecentCategories(n = 8)
@@ -64,7 +68,8 @@ class DashboardRepositoryImpl @Inject constructor(
             month = today.monthValue,
             day = today.dayOfMonth
         )
-        val dailyCompleted = dailyResponse.data.count
+        val dailyGoalTotal = settings.dailyGoalCards.coerceAtLeast(1)
+        val dailyCompleted = dailyResponse.data.count.coerceIn(0, dailyGoalTotal)
 
         // 4. Monthly learned count → streak
         val monthlyResponse = api.getMonthlyLearnedCount()
@@ -75,7 +80,7 @@ class DashboardRepositoryImpl @Inject constructor(
             userPhotoUrl = null,            // avatar handled separately if needed
             streakCount = streak,
             recentDecks = recentDecks,
-            dailyGoalTotal = account.dailyGoal,
+            dailyGoalTotal = dailyGoalTotal,
             dailyGoalCompleted = dailyCompleted,
         )
     }

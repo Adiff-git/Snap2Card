@@ -95,6 +95,13 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
                     restoreState = true
                 }
             },
+            onReviewClick = {
+                navController.navigate(Screen.DeckList.route) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
         )
     }
     composable(Screen.DeckList.route) {

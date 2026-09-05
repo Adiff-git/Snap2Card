@@ -74,6 +74,7 @@ import androidx.compose.runtime.setValue
 fun HomeScreen(
     onDeckClick: (String) -> Unit,
     onSnapClick: () -> Unit,
+    onReviewClick: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -105,6 +106,7 @@ fun HomeScreen(
                     state = state,
                     onDeckClick = onDeckClick,
                     onSnapClick = onSnapClick,
+                    onReviewClick = onReviewClick,
                     onDeleteDeck = viewModel::deleteDeck,
                 )
             }
@@ -117,6 +119,7 @@ private fun HomeContent(
     state: HomeUiState.Success,
     onDeckClick: (String) -> Unit,
     onSnapClick: () -> Unit,
+    onReviewClick: () -> Unit,
     onDeleteDeck: (RecentDeck) -> Unit,
 ) {
     Column(
@@ -152,6 +155,7 @@ private fun HomeContent(
         DailyGoalCard(
             total = state.dailyGoalTotal,
             completed = state.dailyGoalCompleted,
+            onReviewClick = onReviewClick,
         )
 
         Spacer(Modifier.height(Spacing.lg))
@@ -474,8 +478,17 @@ private fun ConfirmDeleteDeckDialog(
 private fun DailyGoalCard(
     total: Int,
     completed: Int,
+    onReviewClick: () -> Unit,
 ) {
-    val remaining = (total - completed).coerceAtLeast(0)
+    val safeTotal = total.coerceAtLeast(1)
+    val safeCompleted = completed.coerceIn(0, safeTotal)
+    val remaining = safeTotal - safeCompleted
+    val progress = safeCompleted.toFloat() / safeTotal.toFloat()
+    val remainingText = if (remaining == 0) {
+        "Goal completed today"
+    } else {
+        "$remaining left today"
+    }
 
     Card(
         modifier = Modifier
@@ -511,19 +524,29 @@ private fun DailyGoalCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Daily Goal: $total Cards",
+                    text = "Daily Goal: $safeTotal Cards",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(Modifier.height(Spacing.xxs))
                 Text(
-                    text = "$remaining left today",
+                    text = remainingText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Spacer(Modifier.height(Spacing.sm))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = Indigo500,
+                    trackColor = Indigo100,
+                )
             }
 
-            TextButton(onClick = { /* TODO: Navigate to study */ }) {
+            TextButton(onClick = onReviewClick) {
                 Text(
                     "Review",
                     style = MaterialTheme.typography.labelLarge,
