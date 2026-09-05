@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.snap2card.core.util.FileUtil
 import com.snap2card.feature.snap2card.domain.service.OcrTextProcessor
 import com.snap2card.feature.snap2card.domain.usecase.ExtractTextForOcrUseCase
 import com.snap2card.feature.snap2card.domain.usecase.GenerateCardsFromOcrTextUseCase
@@ -23,6 +24,7 @@ data class GenerationSource(
 ) {
     val displayName: String = name?.takeIf { it.isNotBlank() }
         ?: if (type == "camera") "Captured photo" else "Selected file"
+    val isPdf: Boolean = FileUtil.isPdf(mimeType, name)
 }
 
 sealed class CardGenerationInputUiState {
@@ -43,6 +45,7 @@ sealed class CardGenerationInputUiState {
     data class Error(
         val source: GenerationSource?,
         val message: String,
+        val title: String = "Could not generate cards",
     ) : CardGenerationInputUiState()
 }
 
@@ -115,7 +118,10 @@ class CardGenerationInputViewModel @Inject constructor(
     private fun extractText(generationSource: GenerationSource) {
         viewModelScope.launch {
             _uiState.value = CardGenerationInputUiState.Loading(generationSource, extractionMessage(generationSource))
-            extractTextForOcrUseCase(generationSource.uri, generationSource.mimeType)
+            extractTextForOcrUseCase(
+                generationSource.uri,
+                if (generationSource.isPdf) "application/pdf" else generationSource.mimeType,
+            )
                 .onSuccess { ocrResult ->
                     _uiState.value = CardGenerationInputUiState.OcrPreview(
                         source = generationSource,
@@ -127,6 +133,7 @@ class CardGenerationInputViewModel @Inject constructor(
                     _uiState.value = CardGenerationInputUiState.Error(
                         source = generationSource,
                         message = error.message ?: "Failed to extract text",
+                        title = "Could not extract text",
                     )
                 }
         }
@@ -135,7 +142,7 @@ class CardGenerationInputViewModel @Inject constructor(
     private fun generateFromText(generationSource: GenerationSource, rawText: String) {
         viewModelScope.launch {
             _uiState.value = CardGenerationInputUiState.Loading(generationSource, "Creating flashcards from reviewed text...")
-            generateCardsFromOcrTextUseCase(rawText, if (generationSource.mimeType == "application/pdf") "pdf" else "scan")
+            generateCardsFromOcrTextUseCase(rawText, if (generationSource.isPdf) "pdf" else "scan")
                 .onSuccess { generatedCards ->
                     handleGeneratedCards(generationSource, generatedCards)
                 }
@@ -171,7 +178,7 @@ class CardGenerationInputViewModel @Inject constructor(
         extractionMessage(source)
 
     private fun extractionMessage(source: GenerationSource): String =
-        if (source.mimeType == "application/pdf") {
+        if (source.isPdf) {
             "Extracting text from your PDF..."
         } else {
             "Scanning text from your image..."

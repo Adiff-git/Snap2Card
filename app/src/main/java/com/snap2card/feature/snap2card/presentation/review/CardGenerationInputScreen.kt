@@ -55,6 +55,7 @@ fun CardGenerationInputScreen(
         )
         is CardGenerationInputUiState.Error -> GenerationErrorContent(
             source = state.source,
+            title = state.title,
             message = state.message,
             onRetry = viewModel::retry,
             onNavigateBack = onNavigateBack,
@@ -77,7 +78,7 @@ private fun OcrPreviewContent(
     onGenerateCards: () -> Unit,
     onNavigateBack: () -> Unit,
 ) {
-    val isPdf = state.source.mimeType == "application/pdf"
+    val isPdf = state.source.isPdf
     Scaffold(
         topBar = {
             AppTopBar(
@@ -195,6 +196,7 @@ private fun GeneratingCardsContent(
 @Composable
 private fun GenerationErrorContent(
     source: GenerationSource?,
+    title: String,
     message: String,
     onRetry: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -217,7 +219,7 @@ private fun GenerationErrorContent(
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = "Could not generate cards",
+                text = title,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.error,
                 fontWeight = FontWeight.SemiBold,

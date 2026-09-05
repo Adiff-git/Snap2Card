@@ -2,6 +2,7 @@ package com.snap2card.feature.snap2card.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.snap2card.core.util.FileUtil
 import com.snap2card.feature.snap2card.data.vocabulary.mapper.toDomain
 import com.snap2card.feature.snap2card.data.vocabulary.remote.VocabularyApiService
@@ -28,18 +29,22 @@ class OcrRepositoryImpl @Inject constructor(
 ) : OcrRepository {
 
     override suspend fun extractText(uri: Uri, mimeType: String?): Result<OcrResult> = try {
-        val ocrResult = if (mimeType == "application/pdf") {
+        val isPdf = FileUtil.isPdf(mimeType)
+        val ocrResult = if (isPdf) {
             textRecognitionService.recognizePdfText(uri).getOrThrow()
         } else {
             textRecognitionService.recognizeText(uri).getOrThrow()
         }
         if (!OcrTextProcessor.hasReadableText(ocrResult.text)) {
-            throw IllegalArgumentException(OcrTextProcessor.NO_READABLE_TEXT_MESSAGE)
+            throw IllegalArgumentException(
+                if (isPdf) "No readable text was detected in this PDF. Try another PDF file."
+                else OcrTextProcessor.NO_READABLE_TEXT_MESSAGE
+            )
         }
         Result.success(ocrResult)
     } catch (error: Throwable) {
         if (error is CancellationException) throw error
-        Result.failure(error.toGenerationFailure())
+        Result.failure(error.toTextExtractionFailure(FileUtil.isPdf(mimeType)))
     }
 
     override suspend fun generateCardsFromText(
@@ -56,7 +61,7 @@ class OcrRepositoryImpl @Inject constructor(
     }
 
     override suspend fun generateCards(uri: Uri, mimeType: String): Result<List<GeneratedVocabularyCard>> = try {
-        val cards = if (mimeType == "application/pdf") {
+        val cards = if (FileUtil.isPdf(mimeType)) {
             vocabularyApiService.generateVocabularyFromPdf(
                 file = FileUtil.uriToRequestBody(context, uri, "application/pdf"),
                 level = VocabularyGenerationDefaults.LEVEL,
@@ -105,10 +110,25 @@ class OcrRepositoryImpl @Inject constructor(
         return IllegalStateException(message, this)
     }
 
+    private fun Throwable.toTextExtractionFailure(isPdf: Boolean): Throwable {
+        if (this is IllegalArgumentException && !message.isNullOrBlank()) return this
+        Log.e(TAG, "Text extraction failed. isPdf=$isPdf", this)
+        val message = if (isPdf) {
+            "Could not extract text from this PDF. Try another PDF file."
+        } else {
+            "Failed to scan text"
+        }
+        return IllegalStateException(message, this)
+    }
+
     private fun String.extractApiMessage(): String? = runCatching {
         Json.parseToJsonElement(this)
             .jsonObject["message"]
             ?.jsonPrimitive
             ?.contentOrNull
     }.getOrNull()
+
+    private companion object {
+        const val TAG = "Snap2CardOcrRepo"
+    }
 }

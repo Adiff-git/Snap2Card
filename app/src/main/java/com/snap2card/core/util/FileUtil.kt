@@ -27,13 +27,8 @@ object FileUtil {
 
     /** Copies a content URI to a temp file and returns a Retrofit MultipartBody.Part. */
     fun uriToMultipart(context: Context, uri: Uri, partName: String = "file"): MultipartBody.Part {
-        val mimeType = context.contentResolver.getType(uri) ?: "application/octet-stream"
-        val extension = MimeTypeMap.getSingleton()
-            .getExtensionFromMimeType(mimeType) ?: "bin"
-        val tempFile = File(context.cacheDir, "upload_${System.currentTimeMillis()}.$extension")
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(tempFile).use { output -> input.copyTo(output) }
-        }
+        val mimeType = getMimeType(context, uri)
+        val tempFile = copyUriToTempFile(context, uri, extensionForMimeType(mimeType))
         val requestBody = tempFile.asRequestBody(mimeType.toMediaTypeOrNull())
         return MultipartBody.Part.createFormData(partName, tempFile.name, requestBody)
     }
@@ -43,17 +38,42 @@ object FileUtil {
         uri: Uri,
         mimeType: String = context.contentResolver.getType(uri) ?: "application/octet-stream",
     ): RequestBody {
-        val extension = MimeTypeMap.getSingleton()
-            .getExtensionFromMimeType(mimeType) ?: "bin"
-        val tempFile = File(context.cacheDir, "upload_${System.currentTimeMillis()}.$extension")
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(tempFile).use { output -> input.copyTo(output) }
-        }
+        val tempFile = copyUriToTempFile(context, uri, extensionForMimeType(mimeType))
         return tempFile.asRequestBody(mimeType.toMediaTypeOrNull())
     }
 
-    fun getMimeType(context: Context, uri: Uri): String =
-        context.contentResolver.getType(uri) ?: "application/octet-stream"
+    fun copyUriToCacheUri(context: Context, uri: Uri, extension: String = "bin"): Uri {
+        val tempFile = copyUriToTempFile(context, uri, extension)
+        return FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            tempFile,
+        )
+    }
+
+    fun copyUriToTempFile(context: Context, uri: Uri, extension: String = "bin"): File {
+        val tempFile = File(context.cacheDir, "upload_${System.currentTimeMillis()}.$extension")
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw IllegalArgumentException("Could not open selected file")
+        inputStream.use { input ->
+            FileOutputStream(tempFile).use { output -> input.copyTo(output) }
+        }
+        return tempFile
+    }
+
+    fun getMimeType(context: Context, uri: Uri): String {
+        val resolverMimeType = context.contentResolver.getType(uri)
+        val displayName = getDisplayName(context, uri)
+        return if (isPdf(resolverMimeType, displayName)) {
+            "application/pdf"
+        } else {
+            resolverMimeType ?: "application/octet-stream"
+        }
+    }
+
+    fun isPdf(mimeType: String?, fileName: String? = null): Boolean =
+        mimeType.equals("application/pdf", ignoreCase = true) ||
+            fileName?.endsWith(".pdf", ignoreCase = true) == true
 
     fun getDisplayName(context: Context, uri: Uri): String =
         queryOpenableColumn(context, uri, OpenableColumns.DISPLAY_NAME)
@@ -75,4 +95,7 @@ object FileUtil {
             }
         }
     }
+
+    fun extensionForMimeType(mimeType: String): String =
+        MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: "bin"
 }

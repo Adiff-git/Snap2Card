@@ -60,21 +60,38 @@ fun ImportDocumentScreen(
 ) {
     val context = LocalContext.current
     var selectedDocument by remember { mutableStateOf<SelectedDocument?>(null) }
+    var selectionError by remember { mutableStateOf<String?>(null) }
     val documentPicker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) {
                 runCatching {
-                    context.contentResolver.takePersistableUriPermission(
-                        uri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    runCatching {
+                        context.contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    }
+                    val name = FileUtil.getDisplayName(context, uri)
+                    val mimeType = FileUtil.getMimeType(context, uri)
+                    val sizeBytes = FileUtil.getFileSize(context, uri)
+                    val cachedUri = FileUtil.copyUriToCacheUri(
+                        context = context,
+                        uri = uri,
+                        extension = FileUtil.extensionForMimeType(mimeType),
                     )
+                    SelectedDocument(
+                        uri = cachedUri,
+                        name = name,
+                        mimeType = mimeType,
+                        sizeBytes = sizeBytes,
+                    )
+                }.onSuccess { document ->
+                    selectionError = null
+                    selectedDocument = document
+                }.onFailure {
+                    selectedDocument = null
+                    selectionError = "Could not open selected file. Please choose another file."
                 }
-                selectedDocument = SelectedDocument(
-                    uri = uri,
-                    name = FileUtil.getDisplayName(context, uri),
-                    mimeType = FileUtil.getMimeType(context, uri),
-                    sizeBytes = FileUtil.getFileSize(context, uri),
-                )
             }
         }
 
@@ -114,6 +131,14 @@ fun ImportDocumentScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
+            if (selectionError != null) {
+                Text(
+                    text = selectionError!!,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                )
+            }
             if (selectedDocument == null) {
                 ImportEmptyState(onChooseFile = { chooseFile() })
             } else {
