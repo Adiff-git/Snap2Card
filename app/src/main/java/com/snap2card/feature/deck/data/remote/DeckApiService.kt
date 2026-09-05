@@ -4,6 +4,7 @@ import com.snap2card.feature.deck.data.remote.dto.CardCategorizeRequest
 import com.snap2card.feature.deck.data.remote.dto.CardCategorizeResponse
 import com.snap2card.feature.deck.data.remote.dto.CardCreateRequest
 import com.snap2card.feature.deck.data.remote.dto.CardCreateResponse
+import com.snap2card.feature.deck.data.remote.dto.CardDeleteResponse
 import com.snap2card.feature.deck.data.remote.dto.CardEditResponse
 import com.snap2card.feature.deck.data.remote.dto.CardListResponse
 import com.snap2card.feature.deck.data.remote.dto.CardRetrieveResponse
@@ -44,8 +45,13 @@ interface DeckApiService {
     @POST("categories")
     suspend fun createCategory(@Body request: CategoryCreateRequest): CategoryCreateResponse
 
+    @Headers("Content-Type: application/json")
     @DELETE("categories")
     suspend fun deleteCategory(@Query("id") id: String): CategoryDeleteResponse
+
+    @Headers("Content-Type: application/json")
+    @DELETE("cards")
+    suspend fun deleteCard(@Query("id") id: String): CardDeleteResponse
 
     @POST("cards/categorize")
     suspend fun categorizeCard(@Body request: CardCategorizeRequest): CardCategorizeResponse

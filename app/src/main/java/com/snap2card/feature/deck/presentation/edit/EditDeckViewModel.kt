@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.snap2card.feature.deck.domain.model.Card
 import com.snap2card.feature.deck.domain.model.Deck
 import com.snap2card.feature.deck.domain.usecase.AddCardUseCase
+import com.snap2card.feature.deck.domain.usecase.DeleteCardUseCase
 import com.snap2card.feature.deck.domain.usecase.GetCardsForDeckUseCase
 import com.snap2card.feature.deck.domain.usecase.GetDeckByIdUseCase
 import com.snap2card.feature.deck.domain.usecase.UpdateCardUseCase
@@ -31,6 +32,7 @@ class EditDeckViewModel @Inject constructor(
     private val getCardsForDeckUseCase: GetCardsForDeckUseCase,
     private val addCardUseCase: AddCardUseCase,
     private val updateCardUseCase: UpdateCardUseCase,
+    private val deleteCardUseCase: DeleteCardUseCase,
 ) : ViewModel() {
 
     private val deckId: String = checkNotNull(savedStateHandle["deckId"])
@@ -68,13 +70,25 @@ class EditDeckViewModel @Inject constructor(
     fun saveChanges(result: DeckEditorResult) {
         viewModelScope.launch {
             val original = (uiState.value as? EditDeckUiState.Success)?.cards ?: emptyList()
-            result.cards.forEachIndexed { i, input ->
-                val existing = original.getOrNull(i)
+            val originalById = original.associateBy { it.id }
+            result.cards.forEach { input ->
+                val existing = input.id?.let(originalById::get)
                 if (existing == null) {
                     addCardUseCase(deckId, input.front, input.back)      // new card → POST
                 } else if (existing.front != input.front || existing.back != input.back) {
                     updateCardUseCase(existing.copy(front = input.front, back = input.back))
                 }
+            }
+        }
+    }
+
+    fun deleteCard(cardId: String) {
+        viewModelScope.launch {
+            try {
+                deleteCardUseCase(cardId)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.value = EditDeckUiState.Error(error.message ?: "Failed to delete card")
             }
         }
     }

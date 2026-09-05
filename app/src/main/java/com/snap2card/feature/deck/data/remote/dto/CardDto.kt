@@ -77,6 +77,9 @@ data class CardCategorizeResponse(val status: String)
 data class CardEditResponse(val status: String)
 
 @Serializable
+data class CardDeleteResponse(val status: String? = null)
+
+@Serializable
 data class CardEditRequest(
     val id: String,
     val frontSide: String,

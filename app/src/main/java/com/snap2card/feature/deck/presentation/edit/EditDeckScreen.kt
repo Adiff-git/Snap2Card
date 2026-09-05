@@ -31,12 +31,13 @@ fun EditDeckScreen(
             initialDeckName = state.deck.title,
             initialTag = state.deck.description,
             initialCards = state.cards.map { card ->
-                DeckEditorCardInput(front = card.front, back = card.back)
+                DeckEditorCardInput(id = card.id, front = card.front, back = card.back)
             },
             showDeckInfo = false,
             cardsSectionTitle = null,
             onNavigateBack = onNavigateBack,
             onSave = { result -> viewModel.saveChanges(result); onDeckSaved(deckId) },
+            onDeleteCard = { card -> card.id?.let(viewModel::deleteCard) },
             secondaryActionText = "Study",
             onSecondaryAction = { onStudyClick(deckId) },
         )

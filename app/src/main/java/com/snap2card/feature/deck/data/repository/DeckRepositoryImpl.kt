@@ -154,8 +154,14 @@ class DeckRepositoryImpl @Inject constructor(
         }
         cardDao.updateCard(card.toEntity())
     }
-    override suspend fun deleteCard(cardId: String) = cardDao.deleteCard(cardId)
+    override suspend fun deleteCard(cardId: String) {
+        if (cardId.isBackendCardId()) {
+            deckApiService.deleteCard(cardId)
+        }
+        cardDao.deleteCard(cardId)
+    }
     override suspend fun addCards(cards: List<Card>) = cardDao.insertCards(cards.map { it.toEntity() })
 
     private fun String.isBackendCategoryId(): Boolean = length == 15 && startsWith("CATE")
+    private fun String.isBackendCardId(): Boolean = length == 15 && startsWith("CARD")
 }

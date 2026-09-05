@@ -54,6 +54,7 @@ import com.snap2card.design_system.theme.MedicalTagText
 import com.snap2card.design_system.theme.Spacing
 
 data class DeckEditorCardInput(
+    val id: String? = null,
     val front: String = "",
     val back: String = "",
 )
@@ -83,6 +84,7 @@ fun DeckEditorScaffold(
     subtitleForCount: ((Int) -> String)? = null,
     secondaryActionText: String? = null,
     onSecondaryAction: () -> Unit = {},
+    onDeleteCard: (DeckEditorCardInput) -> Unit = {},
     onNavigateBack: () -> Unit,
     onSave: (DeckEditorResult) -> Unit,
     modifier: Modifier = Modifier,
@@ -175,11 +177,14 @@ fun DeckEditorScaffold(
                 ManualCardEditor(
                     index = index,
                     card = card,
-                    canDelete = cards.size > 1,
+                    canDelete = cards.size > 1 || card.id != null,
                     showValidation = validateBeforeSave,
                     onFrontChange = { cards[index] = card.copy(front = it) },
                     onBackChange = { cards[index] = card.copy(back = it) },
-                    onDelete = { cards.removeAt(index) },
+                    onDelete = {
+                        onDeleteCard(card)
+                        cards.removeAt(index)
+                    },
                 )
             }
             item {
