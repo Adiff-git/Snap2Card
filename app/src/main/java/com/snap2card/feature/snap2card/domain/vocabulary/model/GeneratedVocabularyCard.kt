@@ -3,7 +3,7 @@ package com.snap2card.feature.snap2card.domain.vocabulary.model
 data class GeneratedVocabularyCard(
     val term: String,
     val definition: String,
-    val translation: String,
+    val translation: String = "",
     val partOfSpeech: String? = null,
     val example: String? = null,
     val sourceSentence: String? = null,

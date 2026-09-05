@@ -138,7 +138,7 @@ class GeneratedCardsViewModelTest {
         advanceUntilIdle()
 
         val state = successState(viewModel)
-        assertEquals("Fill in term, definition, and translation for selected cards.", state.saveError)
+        assertEquals("Fill in front and back sides for selected cards.", state.saveError)
         assertEquals(0, repo.createdDecks)
         assertEquals(0, repo.createdCards.size)
     }

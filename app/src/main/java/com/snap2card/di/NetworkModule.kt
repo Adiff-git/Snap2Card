@@ -46,18 +46,24 @@ object NetworkModule {
         loggingInterceptor: HttpLoggingInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
-        // Fix HTTP 415: always send Content-Type: application/json
-        // Also ensures POST with no body gets an empty JSON body {}
+        // Preserve endpoint-specific body types like text/plain while still giving
+        // legacy empty POST/PUT requests a JSON body.
         .addInterceptor(Interceptor { chain ->
             val original = chain.request()
             val request = original.newBuilder()
-                .header("Content-Type", "application/json")
                 .apply {
-                    // POST/PUT with null body → send empty JSON object
+                    val jsonMediaType = "application/json".toMediaType()
+                    val hasContentType = original.header("Content-Type") != null || original.body?.contentType() != null
+
+                    if (!hasContentType) {
+                        header("Content-Type", "application/json")
+                    }
+
+                    // POST/PUT with null body → send empty JSON object.
                     if ((original.method == "POST" || original.method == "PUT")
                         && original.body == null
                     ) {
-                        method(original.method, "{}".toRequestBody("application/json".toMediaType()))
+                        method(original.method, "{}".toRequestBody(jsonMediaType))
                     }
                 }
                 .build()

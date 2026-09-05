@@ -11,11 +11,11 @@ data class GeneratedCardReviewItem(
     val difficulty: String? = null,
     val selected: Boolean = true,
 ) {
-    val isValid: Boolean = term.isNotBlank() && definition.isNotBlank() && translation.isNotBlank()
+    val isValid: Boolean = term.isNotBlank() && definition.isNotBlank()
 
     fun buildBackSide(): String = listOfNotNull(
         "Definition: $definition",
-        "Translation: $translation",
+        translation.takeIf { it.isNotBlank() }?.let { "Translation: $it" },
         partOfSpeech?.takeIf { it.isNotBlank() }?.let { "Part of speech: $it" },
         example?.takeIf { it.isNotBlank() }?.let { "Example: $it" },
         sourceSentence?.takeIf { it.isNotBlank() }?.let { "Source: $it" },

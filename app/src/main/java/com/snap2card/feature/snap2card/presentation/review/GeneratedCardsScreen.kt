@@ -237,14 +237,14 @@ private fun GeneratedCardEditor(
             OutlinedTextField(
                 value = card.term,
                 onValueChange = onTermChange,
-                label = { Text("Term") },
+                label = { Text("Front side") },
                 isError = card.selected && card.term.isBlank(),
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = card.definition,
                 onValueChange = onDefinitionChange,
-                label = { Text("Definition") },
+                label = { Text("Back side") },
                 minLines = 2,
                 isError = card.selected && card.definition.isBlank(),
                 modifier = Modifier.fillMaxWidth(),
@@ -252,8 +252,7 @@ private fun GeneratedCardEditor(
             OutlinedTextField(
                 value = card.translation,
                 onValueChange = onTranslationChange,
-                label = { Text("Translation") },
-                isError = card.selected && card.translation.isBlank(),
+                label = { Text("Translation (optional)") },
                 modifier = Modifier.fillMaxWidth(),
             )
             if (!card.example.isNullOrBlank()) {

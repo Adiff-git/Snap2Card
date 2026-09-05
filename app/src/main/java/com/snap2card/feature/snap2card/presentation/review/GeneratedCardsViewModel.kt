@@ -79,7 +79,7 @@ class GeneratedCardsViewModel @Inject constructor(
             return
         }
         if (selectedCards.any { !it.isValid }) {
-            _uiState.value = state.copy(saveError = "Fill in term, definition, and translation for selected cards.")
+            _uiState.value = state.copy(saveError = "Fill in front and back sides for selected cards.")
             return
         }
 

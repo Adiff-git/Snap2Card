@@ -22,6 +22,18 @@ data class CardCreateRequest(
 data class CardCreateData(val id: String)
 
 @Serializable
+data class CardDocumentGenerationData(
+    val numOfCard: Int,
+    val cards: List<CardDocumentGeneratedCardDto>,
+)
+
+@Serializable
+data class CardDocumentGeneratedCardDto(
+    val frontSide: String,
+    val backSide: String,
+)
+
+@Serializable
 data class CardDto(val id: String, val frontSide: String, val backSide: String)
 
 @Serializable
