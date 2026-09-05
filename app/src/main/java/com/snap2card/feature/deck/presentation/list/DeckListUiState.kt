@@ -7,6 +7,7 @@ sealed class DeckListUiState {
     data class Success(
         val decks: List<Deck>,
         val deletingDeckIds: Set<String> = emptySet(),
+        val deleteMessage: String? = null,
         val deleteError: String? = null,
     ) : DeckListUiState()
     data object Empty : DeckListUiState()

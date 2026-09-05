@@ -11,6 +11,9 @@ sealed class HomeUiState {
         val recentDecks: List<RecentDeck>,
         val dailyGoalTotal: Int,
         val dailyGoalCompleted: Int,
+        val deletingDeckIds: Set<String> = emptySet(),
+        val deleteMessage: String? = null,
+        val deleteError: String? = null,
     ) : HomeUiState()
     data class Error(val message: String) : HomeUiState()
 }

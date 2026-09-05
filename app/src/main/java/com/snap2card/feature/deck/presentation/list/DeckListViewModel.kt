@@ -25,19 +25,22 @@ class DeckListViewModel @Inject constructor(
 
     private val deletedDeckIds = MutableStateFlow<Set<String>>(emptySet())
     private val deletingDeckIds = MutableStateFlow<Set<String>>(emptySet())
+    private val deleteMessage = MutableStateFlow<String?>(null)
     private val deleteError = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<DeckListUiState> = combine(
         getDecksUseCase(),
         deletedDeckIds,
         deletingDeckIds,
+        deleteMessage,
         deleteError,
-    ) { decks: List<Deck>, deletedIds: Set<String>, deletingIds: Set<String>, error: String? ->
+    ) { decks: List<Deck>, deletedIds: Set<String>, deletingIds: Set<String>, message: String?, error: String? ->
         val visibleDecks = decks.filterNot { it.id in deletedIds }
         if (visibleDecks.isEmpty()) DeckListUiState.Empty
         else DeckListUiState.Success(
             decks = visibleDecks,
             deletingDeckIds = deletingIds,
+            deleteMessage = message,
             deleteError = error,
         )
     }
@@ -54,14 +57,17 @@ class DeckListViewModel @Inject constructor(
         if (deckId in deletingDeckIds.value) return
 
         deletingDeckIds.update { it + deckId }
+        deleteMessage.value = null
         deleteError.value = null
 
         viewModelScope.launch {
             try {
                 deleteDeckUseCase(deckId)
                 deletedDeckIds.update { it + deckId }
+                deleteMessage.value = "Deck deleted."
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
+                deleteMessage.value = null
                 deleteError.value = error.message ?: "Could not delete deck. Try again."
             } finally {
                 deletingDeckIds.update { it - deckId }
@@ -70,6 +76,7 @@ class DeckListViewModel @Inject constructor(
     }
 
     fun clearDeleteError() {
+        deleteMessage.value = null
         deleteError.value = null
     }
 }

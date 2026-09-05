@@ -26,17 +26,25 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +59,8 @@ import com.snap2card.design_system.components.feedback.ErrorState
 import com.snap2card.design_system.components.feedback.LoadingIndicator
 import com.snap2card.design_system.theme.*
 import com.snap2card.feature.home.domain.model.RecentDeck
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 /**
  * Home / Dashboard screen — matches design 1.pdf.
@@ -65,18 +75,34 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val deleteMessage = (uiState as? HomeUiState.Success)?.deleteMessage
+    val deleteError = (uiState as? HomeUiState.Success)?.deleteError
 
-    when (val state = uiState) {
-        is HomeUiState.Loading -> LoadingIndicator()
-        is HomeUiState.Error -> ErrorState(
-            message = state.message,
-            onRetry = { viewModel.loadDashboard() },
-        )
-        is HomeUiState.Success -> HomeContent(
-            state = state,
-            onDeckClick = onDeckClick,
-            onSnapClick = onSnapClick,
-        )
+    LaunchedEffect(deleteMessage, deleteError) {
+        val message = deleteMessage ?: deleteError
+        if (message != null) {
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearDeleteNotice()
+        }
+    }
+
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+        Box(Modifier.padding(padding).fillMaxSize()) {
+            when (val state = uiState) {
+                is HomeUiState.Loading -> LoadingIndicator()
+                is HomeUiState.Error -> ErrorState(
+                    message = state.message,
+                    onRetry = { viewModel.loadDashboard() },
+                )
+                is HomeUiState.Success -> HomeContent(
+                    state = state,
+                    onDeckClick = onDeckClick,
+                    onSnapClick = onSnapClick,
+                    onDeleteDeck = viewModel::deleteDeck,
+                )
+            }
+        }
     }
 }
 
@@ -85,6 +111,7 @@ private fun HomeContent(
     state: HomeUiState.Success,
     onDeckClick: (String) -> Unit,
     onSnapClick: () -> Unit,
+    onDeleteDeck: (RecentDeck) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -108,7 +135,9 @@ private fun HomeContent(
         // ── Recent Decks ───────────────────────────────────────────────
         RecentDecksSection(
             decks = state.recentDecks,
+            deletingDeckIds = state.deletingDeckIds,
             onDeckClick = onDeckClick,
+            onDeleteDeck = onDeleteDeck,
         )
 
         Spacer(Modifier.height(Spacing.lg))
@@ -255,7 +284,9 @@ private fun CaptureCard(onClick: () -> Unit) {
 @Composable
 private fun RecentDecksSection(
     decks: List<RecentDeck>,
+    deletingDeckIds: Set<String>,
     onDeckClick: (String) -> Unit,
+    onDeleteDeck: (RecentDeck) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -285,7 +316,12 @@ private fun RecentDecksSection(
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
     ) {
         items(decks, key = { it.id }) { deck ->
-            RecentDeckCard(deck = deck, onClick = { onDeckClick(deck.id) })
+            RecentDeckCard(
+                deck = deck,
+                isDeleting = deck.id in deletingDeckIds,
+                onClick = { onDeckClick(deck.id) },
+                onDelete = { onDeleteDeck(deck) },
+            )
         }
     }
 }
@@ -293,14 +329,29 @@ private fun RecentDecksSection(
 @Composable
 private fun RecentDeckCard(
     deck: RecentDeck,
+    isDeleting: Boolean,
     onClick: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     val (tagColor, tagBg) = tagColors(deck.category)
+    var menuExpanded by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        ConfirmDeleteDeckDialog(
+            deckTitle = deck.title,
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                onDelete()
+            },
+        )
+    }
 
     Card(
         modifier = Modifier
             .width(200.dp)
-            .clickable(onClick = onClick),
+            .clickable(enabled = !isDeleting, onClick = onClick),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -319,7 +370,8 @@ private fun RecentDeckCard(
                     backgroundColor = tagBg,
                 )
                 IconButton(
-                    onClick = { /* overflow menu */ },
+                    onClick = { menuExpanded = true },
+                    enabled = !isDeleting,
                     modifier = Modifier.size(24.dp),
                 ) {
                     Icon(
@@ -327,6 +379,18 @@ private fun RecentDeckCard(
                         contentDescription = "More options",
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            menuExpanded = false
+                            showDeleteDialog = true
+                        },
                     )
                 }
             }
@@ -371,6 +435,29 @@ private fun RecentDeckCard(
             )
         }
     }
+}
+
+@Composable
+private fun ConfirmDeleteDeckDialog(
+    deckTitle: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete deck?") },
+        text = { Text("Are you sure you want to delete \"$deckTitle\"? This action cannot be undone.") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Delete", color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+    )
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
