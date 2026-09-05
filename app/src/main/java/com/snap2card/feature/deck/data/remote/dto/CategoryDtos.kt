@@ -51,18 +51,18 @@ data class CategoryLogsData(
 data class CategoryLogDto(
     @SerialName("logId") val logId: String,
     @SerialName("examName") val examName: String,
-    @SerialName("score") val score: Int,
+    @SerialName("score") val score: Int? = null,
     @SerialName("totalScore") val totalScore: Int,
     @SerialName("start") val start: ApiTimeDto,
-    @SerialName("end") val end: ApiTimeDto,
+    @SerialName("end") val end: ApiTimeDto? = null,
 )
 @Serializable
 data class ApiTimeDto(
-    @SerialName("year") val year: Int,
-    @SerialName("month") val month: Int,
-    @SerialName("day") val day: Int,
-    @SerialName("hour") val hour: Int,
-    @SerialName("minute") val minute: Int,
-    @SerialName("second") val second: Int,
-    @SerialName("gmt") val gmt: String,
+    @SerialName("year") val year: Int?,
+    @SerialName("month") val month: Int?,
+    @SerialName("day") val day: Int?,
+    @SerialName("hour") val hour: Int?,
+    @SerialName("minute") val minute: Int?,
+    @SerialName("second") val second: Int?,
+    @SerialName("gmt") val gmt: String?,
 )

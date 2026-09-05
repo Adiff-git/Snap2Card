@@ -86,7 +86,7 @@ class DeckRepositoryImpl @Inject constructor(
         try {
             val cardIds = fetchCategory(deckId).cardIds
             val cards = if (cardIds.isEmpty()) emptyList()
-            else deckApiService.getCards(cardIds.joinToString(",")).data.map { it.toDomain(deckId) }
+            else deckApiService.getCards(cardIds).data.map { it.toDomain(deckId) }
             cardDao.insertCards(cards.map { it.toEntity() })
             emit(cards)
         } catch (error: Exception) {

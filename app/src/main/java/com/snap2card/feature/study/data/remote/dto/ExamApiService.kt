@@ -24,4 +24,8 @@ interface ExamApiService {
 
     @POST("exams/completed")
     suspend fun completeExam(@Body request: CompleteExamRequest): StatusOnlyResponse
+
+    @Headers("Content-Type: application/json")
+    @GET("exams/review-log-detail")
+    suspend fun getReviewLogDetail(@Query("examLogId") examLogId: String): ApiResponse<ExamReviewLogDetailData>
 }

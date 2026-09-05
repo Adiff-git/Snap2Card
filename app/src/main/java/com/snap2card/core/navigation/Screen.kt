@@ -19,6 +19,9 @@ sealed class Screen(val route: String) {
     data object DeckList : Screen("deck_list")
     data object Snap2Card : Screen("snap2card")
     data object History : Screen("history")
+    data object HistorySessionDetail : Screen("history/{logId}") {
+        fun createRoute(logId: String) = "history/$logId"
+    }
     data object Settings : Screen("settings")
     data object Account : Screen("account")
 

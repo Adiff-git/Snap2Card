@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,7 +24,10 @@ import com.snap2card.feature.history.domain.model.DayCount
 import com.snap2card.feature.history.domain.model.HistorySession
 
 @Composable
-fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
+fun HistoryScreen(
+    onSessionClick: (String) -> Unit,
+    viewModel: HistoryViewModel = hiltViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(topBar = { AppTopBar(title = "History") }) { padding ->
@@ -36,14 +40,14 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
                     modifier = Modifier.align(Alignment.Center),
                 )
                 is HistoryUiState.Empty -> EmptyState("No study sessions yet. Start studying!")
-                is HistoryUiState.Loaded -> HistoryContent(state)
+                is HistoryUiState.Loaded -> HistoryContent(state, onSessionClick)
             }
         }
     }
 }
 
 @Composable
-private fun HistoryContent(state: HistoryUiState.Loaded) {
+private fun HistoryContent(state: HistoryUiState.Loaded, onSessionClick: (String) -> Unit) {
     LazyColumn(
         Modifier.fillMaxSize().padding(horizontal = Spacing.md),
         verticalArrangement = Arrangement.spacedBy(Spacing.lg),
@@ -61,7 +65,8 @@ private fun HistoryContent(state: HistoryUiState.Loaded) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            items(section.sessions) { session -> SessionRow(session) }
+            items(section.sessions) { session -> SessionRow(session, onClick = { onSessionClick(session.id) }) }
+
         }
         item { Spacer(Modifier.height(Spacing.lg)) }
     }
@@ -135,12 +140,13 @@ private fun ActivityHeatmap(dailyCounts: List<DayCount>) {
 }
 
 @Composable
-private fun SessionRow(session: HistorySession) {
+private fun SessionRow(session: HistorySession, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable(onClick = onClick)
             .padding(Spacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm),

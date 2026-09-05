@@ -19,6 +19,7 @@ import com.snap2card.feature.deck.presentation.create.CreateDeckScreen
 import com.snap2card.feature.deck.presentation.edit.EditDeckScreen
 import com.snap2card.feature.deck.presentation.list.DeckListScreen
 import com.snap2card.feature.history.presentation.HistoryScreen
+import com.snap2card.feature.history.presentation.HistorySessionDetailScreen
 import com.snap2card.feature.home.presentation.HomeScreen
 import com.snap2card.feature.settings.presentation.SettingsScreen
 import com.snap2card.feature.snap2card.presentation.capture.CameraInputScreen
@@ -183,7 +184,12 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
         val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
         StudyScreen(onFinished = { navController.popBackStack() })
     }
-    composable(Screen.History.route) { HistoryScreen() }
+    composable(Screen.History.route) {
+        HistoryScreen(onSessionClick = { logId -> navController.navigate(Screen.HistorySessionDetail.createRoute(logId)) })
+    }
+    composable(Screen.HistorySessionDetail.route) {
+        HistorySessionDetailScreen(onNavigateBack = { navController.popBackStack() })
+    }
     composable(Screen.Settings.route) {
         SettingsScreen(
             onSignOut = { navController.navigate(Screen.Login.route) { popUpTo(0) } },
